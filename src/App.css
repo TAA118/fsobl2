@@ -1,0 +1,60 @@
+/* Global and shared styles */
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: white;
+  border-bottom: 1px solid var(--border);
+}
+
+.nav__left {
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 18px;
+}
+
+.nav__right {
+  display: flex;
+  gap: 10px;
+}
+
+/* Buttons */
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.15s;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn--secondary {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.btn--danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: #fecaca;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 18px 12px;
+  color: var(--text);
+  border-top: 1px solid var(--border);
+  background: transparent;
+  font-size: 0.95rem;
+}
