@@ -28,15 +28,19 @@ function Dashboard() {
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {}
 
 
-  //cam
+    //cam
   useEffect(() => {
     const cached = localStorage.getItem('plan')
+
     if (cached) {
       dispatch(setPlan(cached))
     }
 
     const fetchPlan = async () => {
       if (!token) return
+
+      if (userRole !== 'cliente') return
+
       try {
         const response = await fetch(`${API_URL}/v1/plan`, {
           headers: {
@@ -55,7 +59,7 @@ function Dashboard() {
     }
 
     fetchPlan()
-  }, [token, authHeaders, dispatch])
+  }, [token, userRole, dispatch])
   
   const fetchMisCriticas = async () => {
     if (!token) {
