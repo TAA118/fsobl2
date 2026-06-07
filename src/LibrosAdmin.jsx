@@ -13,12 +13,35 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
   const [limit, setLimit] = useState(10)
   const [totalPages, setTotalPages] = useState(1)
   const [totalLibros, setTotalLibros] = useState(0)
+  const [generos, setGeneros] = useState([])
 
   useEffect(() => {
-    if (userRole === 'admin') {
-      fetchLibros()
+  if (userRole === 'admin') {
+    fetchLibros()
+    fetchGeneros()
+  }
+}, [userRole, page, limit])
+
+  const fetchGeneros = async () => {
+  try {
+    const response = await fetch(`${API_URL}/v1/generos`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders
+      }
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al obtener géneros')
     }
-  }, [userRole, page, limit])
+
+    setGeneros(data || [])
+  } catch (err) {
+    setError(err.message)
+  }
+}
 
   const fetchLibros = async () => {
     if (userRole !== 'admin') {
@@ -266,16 +289,27 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
 
     <label>
       Género
-      <input
-        value={createForm.genero}
-        onChange={(e) =>
-          setCreateForm((prev) => ({
-            ...prev,
-            genero: e.target.value
-          }))
-        }
-        required
-      />
+          <select
+      value={createForm.genero}
+      onChange={(e) =>
+        setCreateForm((prev) => ({
+          ...prev,
+          genero: e.target.value
+        }))
+      }
+      required
+    >
+      <option value="">Seleccione un género</option>
+
+      {generos.map((genero) => (
+        <option
+          key={genero.id}
+          value={genero.nombre}
+        >
+          {genero.nombre}
+        </option>
+      ))}
+    </select>
     </label>
 
     <label>
@@ -399,11 +433,21 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
                   </label>
                   <label>
                     Género
-                    <input
-                      value={editForm.genero}
-                      onChange={(e) => setEditForm((p) => ({ ...p, genero: e.target.value }))}
-                      required
-                    />
+                    <select
+                        value={editForm.genero} onChange={(e) => setEditForm((p) => ({ ...p, genero: e.target.value}))}
+                        required
+                      >
+                        <option value="">Seleccione un género</option>
+
+                        {generos.map((genero) => (
+                          <option
+                            key={genero.id}
+                            value={genero.nombre}
+                          >
+                            {genero.nombre}
+                          </option>
+                        ))}
+                      </select>
                   </label>
                   <label>
                     Fecha
