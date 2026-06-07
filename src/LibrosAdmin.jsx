@@ -3,6 +3,7 @@ import { API_URL } from './config'
 
 function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }) {
   const [libros, setLibros] = useState([])
+  const [createForm, setCreateForm] = useState({titulo: '', autor: '', genero: '', fecha: '', sinopsis: '', imagenURL: ''})
   const [filterGenero, setFilterGenero] = useState('')
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({ titulo: '', autor: '', genero: '', fecha: '', sinopsis: '', imagenURL: '', imagenFile: null })
@@ -66,6 +67,57 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
     setError(null)
     setMessage(null)
   }
+
+  const handleCreateLibro = async (e) => {
+    e.preventDefault()
+
+    setLoading(true)
+    setLocalLoading(true)
+    setError(null)
+    setMessage(null)
+
+    try {
+      const response = await fetch(`${API_URL}/v1/libros`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders
+        },
+        body: JSON.stringify({
+          titulo: createForm.titulo,
+          autor: createForm.autor,
+          genero: createForm.genero,
+          fecha: createForm.fecha,
+          sinopsis: createForm.sinopsis,
+          imagenURL: createForm.imagenURL
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al crear libro')
+      }
+
+      setMessage('Libro creado correctamente')
+
+      setCreateForm({
+        titulo: '',
+        autor: '',
+        genero: '',
+        fecha: '',
+        sinopsis: '',
+        imagenURL: ''
+      })
+
+      fetchLibros()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+      setLocalLoading(false)
+    }
+  }    
 
   const uniqueGeneros = Array.from(new Set(libros.map((libro) => libro.genero).filter(Boolean)))
   const librosFiltrados = filterGenero ? libros.filter((libro) => libro.genero === filterGenero) : libros
@@ -167,6 +219,8 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
           <p>No tienes permisos para acceder a esta sección.</p>
         </div>
       </div>
+
+      
     )
   }
 
@@ -176,6 +230,107 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
         <h2>Administración de libros</h2>
         <p>Lista completa de libros. Edita o elimina los libros desde aquí.</p>
       </div>
+
+      <div className="dashboard-item" style={{ marginBottom: '20px' }}>
+  <h3>Crear nuevo libro</h3>
+
+  <form onSubmit={handleCreateLibro} className="register-form">
+
+    <label>
+      Título
+      <input
+        value={createForm.titulo}
+        onChange={(e) =>
+          setCreateForm((prev) => ({
+            ...prev,
+            titulo: e.target.value
+          }))
+        }
+        required
+      />
+    </label>
+
+    <label>
+      Autor
+      <input
+        value={createForm.autor}
+        onChange={(e) =>
+          setCreateForm((prev) => ({
+            ...prev,
+            autor: e.target.value
+          }))
+        }
+        required
+      />
+    </label>
+
+    <label>
+      Género
+      <input
+        value={createForm.genero}
+        onChange={(e) =>
+          setCreateForm((prev) => ({
+            ...prev,
+            genero: e.target.value
+          }))
+        }
+        required
+      />
+    </label>
+
+    <label>
+      Fecha
+      <input
+        type="date"
+        value={createForm.fecha}
+        onChange={(e) =>
+          setCreateForm((prev) => ({
+            ...prev,
+            fecha: e.target.value
+          }))
+        }
+        required
+      />
+    </label>
+
+    <label>
+      Sinopsis
+      <textarea
+        rows="4"
+        value={createForm.sinopsis}
+        onChange={(e) =>
+          setCreateForm((prev) => ({
+            ...prev,
+            sinopsis: e.target.value
+          }))
+        }
+        placeholder="Déjalo vacío para generar una sinopsis automáticamente"
+      />
+    </label>
+
+    <label>
+      URL de imagen
+      <input
+        value={createForm.imagenURL}
+        onChange={(e) =>
+          setCreateForm((prev) => ({
+            ...prev,
+            imagenURL: e.target.value
+          }))
+        }
+      />
+    </label>
+
+    <button
+      type="submit"
+      className="btn btn--primary"
+      disabled={localLoading}
+    >
+      Crear libro
+    </button>
+
+  </form>
+</div>
 
       <div className="dashboard-actions">
         <button type="button" className="btn btn--secondary" style={{ height: '40px' }} onClick={fetchLibros} disabled={localLoading}>
