@@ -27,6 +27,8 @@ function Dashboard() {
   const { token, plan: userPlan, role: userRole } = useSelector((state) => state.auth)
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {}
 
+
+  //cam
   useEffect(() => {
     const cached = localStorage.getItem('plan')
     if (cached) {
