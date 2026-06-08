@@ -385,7 +385,7 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
 
       <div className="dashboard-actions">
         <button type="button" className="btn btn--secondary" style={{ height: '40px' }} onClick={fetchLibros} disabled={localLoading}>
-          {localLoading ? 'Recargando...' : 'RecahandleFilterChange
+          {localLoading ? 'Recargando...' : 'Recargar'}
         </button>
         <label>
           Filtrar por género
