@@ -21,7 +21,7 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
     fetchLibros()
     fetchGeneros()
   }
-}, [userRole, page, limit])
+}, [userRole, page, limit, filterGenero])
 
   const fetchGeneros = async () => {
   try {
@@ -55,7 +55,12 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
     setError(null)
 
     try {
-      const response = await fetch(`${API_URL}/v1/libros?limit=${limit}&page=${page}`, {
+      let url = `${API_URL}/v1/libros?limit=${limit}&page=${page}`
+      if (filterGenero) {
+        url += `&genero=${encodeURIComponent(filterGenero)}`
+      }
+      
+      const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           ...authHeaders
@@ -145,8 +150,12 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
     }
   }    
 
+  const handleFilterChange = (e) => {
+    setFilterGenero(e.target.value)
+    setPage(1)
+  }
+
   const uniqueGeneros = Array.from(new Set(libros.map((libro) => libro.genero).filter(Boolean)))
-  const librosFiltrados = filterGenero ? libros.filter((libro) => libro.genero === filterGenero) : libros
 
   const handleCancelEdit = () => {
     setEditingId(null)
@@ -376,7 +385,7 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
 
       <div className="dashboard-actions">
         <button type="button" className="btn btn--secondary" style={{ height: '40px' }} onClick={fetchLibros} disabled={localLoading}>
-          {localLoading ? 'Recargando...' : 'Recargar lista'}
+          {localLoading ? 'Recargando...' : 'RecahandleFilterChange
         </button>
         <label>
           Filtrar por género
@@ -391,19 +400,16 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
 
       {localLoading && <p>Cargando libros...</p>}
       {!localLoading && libros.length === 0 && <p>No hay libros registrados.</p>}
-      {!localLoading && libros.length > 0 && librosFiltrados.length === 0 && (
-        <p>No hay libros del género seleccionado.</p>
-      )}
 
-      {!localLoading && librosFiltrados.length > 0 && (
+      {!localLoading && libros.length > 0 && (
         <>
           <div className="pagination-summary">
             <p>
-              Mostrando {librosFiltrados.length} de {totalLibros} libros — página {page} de {totalPages}
+              Mostrando {libros.length} de {totalLibros} libros — página {page} de {totalPages}
             </p>
           </div>
           <ul className="dashboard-list">
-            {librosFiltrados.map((libro) => (
+            {libros.map((libro) => (
               <li key={libro.id} className="dashboard-item">
               {editingId === libro.id ? (
                 <form onSubmit={handleSubmitEdit} className="critica-edit-form">
