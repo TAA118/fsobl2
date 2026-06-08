@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux'
-import { API_URL } from './config'
+import { API_URL } from './config.js'
 import { setPlan } from './store/authSlice.js'
 
 function CambioPlan({ authHeaders, loading, setLoading, setError, setMessage }) {

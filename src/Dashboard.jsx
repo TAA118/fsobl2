@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { API_URL } from './config'
-import InformeUso from './InformeUso'
-import CambioPlan from './CambioPlan'
-import LibrosAdmin from './LibrosAdmin'
-import GenerosAdmin from './GenerosAdmin'
+import { API_URL } from './config.js'
+import InformeUso from './InformeUso.jsx'
+import CambioPlan from './CambioPlan.jsx'
+import LibrosAdmin from './LibrosAdmin.jsx'
+import GenerosAdmin from './GenerosAdmin.jsx'
+import EventosTicketmaster from './EventosTicketmaster.jsx'
 import { setPlan } from './store/authSlice.js'
 
 function Dashboard() {
@@ -379,6 +380,9 @@ const renderLabel = ({ name, value, percent }) => `${name}: ${value} (${percent.
           <button type="button" className="btn btn--secondary" onClick={() => handleViewChange('informeUso')} disabled={loading}>
             Ver informe de uso
           </button>
+          <button type="button" className="btn btn--secondary" onClick={() => handleViewChange('eventos')} disabled={loading}>
+            Eventos
+          </button>
           {isAdmin && (
             <button type="button" className="btn btn--secondary" onClick={() => handleViewChange('adminLibros')} disabled={loading}>
               Administrar libros
@@ -639,6 +643,15 @@ const renderLabel = ({ name, value, percent }) => `${name}: ${value} (${percent.
 
             <InformeUso informeUso={informeUso} />
           </div>
+        )}
+
+        {view === 'eventos' && (
+          <EventosTicketmaster
+            loading={loading}
+            setLoading={setLoading}
+            setError={setError}
+            setMessage={setMessage}
+          />
         )}
       </div>
     </section>

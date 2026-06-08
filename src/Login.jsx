@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { useForm } from 'react-hook-form'
-import { API_URL } from './config'
+import { API_URL } from './config.js'
 import { setAuth } from './store/authSlice.js'
 
 function Login() {
