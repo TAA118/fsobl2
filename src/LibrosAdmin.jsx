@@ -162,8 +162,8 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
     setEditForm({ titulo: '', autor: '', genero: '', fecha: '', sinopsis: '' })
   }
 
-  const handlePageChange = (event) => {
-    setPage(event.selected + 1)
+  const handlePageChange = (newPage) => {
+    setPage(newPage)
   }
 
   const handleSubmitEdit = async (e) => {
@@ -518,7 +518,7 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
       {totalPages > 1 && (
         <Paginate
           pageCount={totalPages}
-          currentPage={page - 1}
+          currentPage={page}
           onPageChange={handlePageChange}
         />
       )}

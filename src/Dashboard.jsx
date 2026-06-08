@@ -315,12 +315,12 @@ function Dashboard() {
 
   }
 
-  const handleCriticasPageChange = (event) => {
-    setCriticasPage(event.selected + 1)
+  const handleCriticasPageChange = (newPage) => {
+    setCriticasPage(newPage)
   }
 
-  const handleCriticasLibroPageChange = (event) => {
-    setCriticasLibroPage(event.selected + 1)
+  const handleCriticasLibroPageChange = (newPage) => {
+    setCriticasLibroPage(newPage)
   }
 
   const fetchInformeUso = async () => {
@@ -489,7 +489,7 @@ const renderLabel = ({ name, value, percent }) => `${name}: ${value} (${percent.
                 {Math.ceil(criticas.length / CRITICAS_LIMIT) > 1 && (
                   <Paginate
                     pageCount={Math.ceil(criticas.length / CRITICAS_LIMIT)}
-                    currentPage={criticasPage - 1}
+                    currentPage={criticasPage}
                     onPageChange={handleCriticasPageChange}
                   />
                 )}
@@ -628,7 +628,7 @@ const renderLabel = ({ name, value, percent }) => `${name}: ${value} (${percent.
                 {Math.ceil(criticasLibro.length / CRITICAS_LIMIT) > 1 && (
                   <Paginate
                     pageCount={Math.ceil(criticasLibro.length / CRITICAS_LIMIT)}
-                    currentPage={criticasLibroPage - 1}
+                    currentPage={criticasLibroPage}
                     onPageChange={handleCriticasLibroPageChange}
                   />
                 )}
