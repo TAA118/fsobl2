@@ -7,6 +7,7 @@ import CambioPlan from './CambioPlan.jsx'
 import LibrosAdmin from './LibrosAdmin.jsx'
 import GenerosAdmin from './GenerosAdmin.jsx'
 import EventosTicketmaster from './EventosTicketmaster.jsx'
+import Paginate from './Paginate.jsx'
 import { setPlan } from './store/authSlice.js'
 
 function Dashboard() {
@@ -23,10 +24,12 @@ function Dashboard() {
   const [message, setMessage] = useState(null)
   const [libroSeleccionado, setLibroSeleccionado] = useState('')
   const [criticasLibro, setCriticasLibro] = useState([])
-  const [informeUso, setInformeUso] = useState(null);
+  const [informeUso, setInformeUso] = useState(null)
+  const [criticasPage, setCriticasPage] = useState(1)
+  const [criticasLibroPage, setCriticasLibroPage] = useState(1)
   const CRITICAS_LIMIT = 5
-  const criticasToDisplay = criticas.slice(0, CRITICAS_LIMIT)
-  const criticasLibroToDisplay = criticasLibro.slice(0, CRITICAS_LIMIT)
+  const criticasToDisplay = criticas.slice((criticasPage - 1) * CRITICAS_LIMIT, criticasPage * CRITICAS_LIMIT)
+  const criticasLibroToDisplay = criticasLibro.slice((criticasLibroPage - 1) * CRITICAS_LIMIT, criticasLibroPage * CRITICAS_LIMIT)
   const dispatch = useDispatch()
   const { token, plan: userPlan, role: userRole } = useSelector((state) => state.auth)
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {}
@@ -299,15 +302,25 @@ function Dashboard() {
     setView(nextView)
 
     if (nextView === 'misCriticas') {
+      setCriticasPage(1)
       fetchMisCriticas()
     } else if (nextView === 'agregarCritica') {
       fetchLibros()
     } else if (nextView === 'criticasLibro') {
+      setCriticasLibroPage(1)
       fetchLibros()
     } else if (nextView === 'informeUso') {
       fetchInformeUso()
     }
 
+  }
+
+  const handleCriticasPageChange = (event) => {
+    setCriticasPage(event.selected + 1)
+  }
+
+  const handleCriticasLibroPageChange = (event) => {
+    setCriticasLibroPage(event.selected + 1)
   }
 
   const fetchInformeUso = async () => {
@@ -429,49 +442,58 @@ const renderLabel = ({ name, value, percent }) => `${name}: ${value} (${percent.
             {loading && <p>Cargando críticas...</p>}
             {!loading && criticas.length === 0 && <p>No hay críticas todavía. Agrega una nueva para que aparezca aquí.</p>}
             {!loading && criticas.length > 0 && (
-              <ul className="dashboard-list">
-                {criticasToDisplay.map((critica) => (
-                  <li key={critica.id} className="dashboard-item">
-                    {editingId === critica.id ? (
-                      <form onSubmit={handleSubmitEdit} className="critica-edit-form">
-                        <label>
-                          Puntaje
-                          <select value={editForm.puntaje} onChange={(e) => setEditForm((p) => ({ ...p, puntaje: e.target.value }))}>
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                              <option key={n} value={n}>{n}</option>
-                            ))}
-                          </select>
-                        </label>
-                        <label>
-                          Comentario
-                          <textarea
-                            value={editForm.comentario}
-                            onChange={(e) => setEditForm((p) => ({ ...p, comentario: e.target.value }))}
-                            rows="3"
-                            required
-                          />
-                        </label>
-                        <div className="critica-actions">
-                          <button type="submit" disabled={loading} className="btn btn--primary">Guardar</button>
-                          <button type="button" onClick={handleCancelEdit} disabled={loading} className="btn btn--secondary">Cancelar</button>
-                        </div>
-                      </form>
-                    ) : (
-                      <>
-                        <strong>{critica.libro?.titulo || 'Libro no disponible'}</strong>
-                        <p>Autor: {critica.libro?.autor || 'Desconocido'}</p>
-                        <p>Puntaje: {critica.puntaje} / 10</p>
-                        <p>{critica.comentario}</p>
-                        <p className="dashboard-meta">Creada: {new Date(critica.createdAt).toLocaleDateString()}</p>
-                        <div className="critica-actions">
-                          <button onClick={() => handleEditClick(critica)} disabled={loading} className="btn btn--primary">Editar</button>
-                          <button onClick={() => handleOpenDeleteConfirm(critica.id)} disabled={loading} className="btn btn--secondary">Eliminar</button>
-                        </div>
-                      </>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              <>
+                <ul className="dashboard-list">
+                  {criticasToDisplay.map((critica) => (
+                    <li key={critica.id} className="dashboard-item">
+                      {editingId === critica.id ? (
+                        <form onSubmit={handleSubmitEdit} className="critica-edit-form">
+                          <label>
+                            Puntaje
+                            <select value={editForm.puntaje} onChange={(e) => setEditForm((p) => ({ ...p, puntaje: e.target.value }))}>
+                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                                <option key={n} value={n}>{n}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label>
+                            Comentario
+                            <textarea
+                              value={editForm.comentario}
+                              onChange={(e) => setEditForm((p) => ({ ...p, comentario: e.target.value }))}
+                              rows="3"
+                              required
+                            />
+                          </label>
+                          <div className="critica-actions">
+                            <button type="submit" disabled={loading} className="btn btn--primary">Guardar</button>
+                            <button type="button" onClick={handleCancelEdit} disabled={loading} className="btn btn--secondary">Cancelar</button>
+                          </div>
+                        </form>
+                      ) : (
+                        <>
+                          <strong>{critica.libro?.titulo || 'Libro no disponible'}</strong>
+                          <p>Autor: {critica.libro?.autor || 'Desconocido'}</p>
+                          <p>Puntaje: {critica.puntaje} / 10</p>
+                          <p>{critica.comentario}</p>
+                          <p className="dashboard-meta">Creada: {new Date(critica.createdAt).toLocaleDateString()}</p>
+                          <div className="critica-actions">
+                            <button onClick={() => handleEditClick(critica)} disabled={loading} className="btn btn--primary">Editar</button>
+                            <button onClick={() => handleOpenDeleteConfirm(critica.id)} disabled={loading} className="btn btn--secondary">Eliminar</button>
+                          </div>
+                        </>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                {Math.ceil(criticas.length / CRITICAS_LIMIT) > 1 && (
+                  <Paginate
+                    pageCount={Math.ceil(criticas.length / CRITICAS_LIMIT)}
+                    currentPage={criticasPage - 1}
+                    onPageChange={handleCriticasPageChange}
+                  />
+                )}
+              </>
             )}
           </div>
         )}
@@ -558,6 +580,7 @@ const renderLabel = ({ name, value, percent }) => `${name}: ${value} (${percent.
                 onChange={(e) => {
                   const idLibro = e.target.value
                   setLibroSeleccionado(idLibro)
+                  setCriticasLibroPage(1)
                   fetchCriticasLibro(idLibro)
                 }}
               >
@@ -578,29 +601,38 @@ const renderLabel = ({ name, value, percent }) => `${name}: ${value} (${percent.
             )}
 
             {!loading && criticasLibro.length > 0 && (
-              <ul className="dashboard-list">
-                <strong>Críticas para: {libros.find((l) => l.id === libroSeleccionado)?.titulo || 'Libro no disponible'}</strong>
-                {criticasLibroToDisplay.map((critica) => (
-                  <li key={critica.id} className="dashboard-item">
+              <>
+                <ul className="dashboard-list">
+                  <strong>Críticas para: {libros.find((l) => l.id === libroSeleccionado)?.titulo || 'Libro no disponible'}</strong>
+                  {criticasLibroToDisplay.map((critica) => (
+                    <li key={critica.id} className="dashboard-item">
 
-                    <p>
-                      Autor: {critica.usuario?.nombreUsuario || 'Desconocido'}
-                    </p>
+                      <p>
+                        Autor: {critica.usuario?.nombreUsuario || 'Desconocido'}
+                      </p>
 
-                    <p>
-                      Puntaje: {critica.puntaje} / 10
-                    </p>
+                      <p>
+                        Puntaje: {critica.puntaje} / 10
+                      </p>
 
-                    <p>{critica.comentario}</p>
+                      <p>{critica.comentario}</p>
 
-                    <p className="dashboard-meta">
-                      {new Date(
-                        critica.createdAt
-                      ).toLocaleDateString()}
-                    </p>
-                  </li>
-                ))}
-              </ul>
+                      <p className="dashboard-meta">
+                        {new Date(
+                          critica.createdAt
+                        ).toLocaleDateString()}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+                {Math.ceil(criticasLibro.length / CRITICAS_LIMIT) > 1 && (
+                  <Paginate
+                    pageCount={Math.ceil(criticasLibro.length / CRITICAS_LIMIT)}
+                    currentPage={criticasLibroPage - 1}
+                    onPageChange={handleCriticasLibroPageChange}
+                  />
+                )}
+              </>
             )}
           </div>
         )}

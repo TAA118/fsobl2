@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import ReactPaginate from 'react-paginate'
+import Paginate from './Paginate.jsx'
 import { API_URL } from './config'
 
 function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }) {
@@ -510,26 +510,10 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
       )}
 
       {totalPages > 1 && (
-        <ReactPaginate
-          previousLabel="← Anterior"
-          nextLabel="Siguiente →"
-          breakLabel="..."
+        <Paginate
           pageCount={totalPages}
-          marginPagesDisplayed={2}
-          pageRangeDisplayed={3}
+          currentPage={page - 1}
           onPageChange={handlePageChange}
-          forcePage={page - 1}
-          containerClassName="pagination-controls"
-          pageClassName="page-item"
-          pageLinkClassName="page-link"
-          previousClassName="page-item"
-          previousLinkClassName="page-link"
-          nextClassName="page-item"
-          nextLinkClassName="page-link"
-          breakClassName="page-item"
-          breakLinkClassName="page-link"
-          activeClassName="active"
-          disabledClassName="disabled"
         />
       )}
 
