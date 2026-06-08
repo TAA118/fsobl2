@@ -387,22 +387,6 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
             ))}
           </select>
         </label>
-        <label>
-          Mostrar
-          <select
-            value={limit}
-            onChange={(e) => {
-              setLimit(Number(e.target.value))
-              setPage(1)
-            }}
-            disabled={localLoading}
-          >
-            {[5, 10, 20, 50].map((size) => (
-              <option key={size} value={size}>{size}</option>
-            ))}
-          </select>
-          libros por página
-        </label>
       </div>
 
       {localLoading && <p>Cargando libros...</p>}
