@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
+import ReactPaginate from 'react-paginate'
 import { API_URL } from './config.js'
 
 function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
@@ -93,6 +94,11 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
     }
   }
 
+  const handlePageChange = (event) => {
+    const pageNumber = event.selected + 1
+    handlePaginacion(pageNumber)
+  }
+
   return (
     <div className="dashboard-results">
       <div className="register-header">
@@ -169,31 +175,28 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
           </ul>
 
           {totalPages > 1 && (
-            <div className="pagination" style={{ textAlign: 'center', marginTop: '20px' }}>
-              {currentPage > 1 && (
-                <button
-                  onClick={() => handlePaginacion(currentPage - 1)}
-                  disabled={eventosLoading}
-                  className="btn btn--secondary"
-                >
-                  ← Anterior
-                </button>
-              )}
-
-              <span style={{ margin: '0 10px' }}>
-                Página {currentPage} de {totalPages}
-              </span>
-
-              {currentPage < totalPages && (
-                <button
-                  onClick={() => handlePaginacion(currentPage + 1)}
-                  disabled={eventosLoading}
-                  className="btn btn--secondary"
-                >
-                  Siguiente →
-                </button>
-              )}
-            </div>
+            <ReactPaginate
+              previousLabel="← Anterior"
+              nextLabel="Siguiente →"
+              breakLabel="..."
+              pageCount={totalPages}
+              marginPagesDisplayed={2}
+              pageRangeDisplayed={3}
+              onPageChange={handlePageChange}
+              forcePage={currentPage - 1}
+              containerClassName="pagination"
+              pageClassName="page-item"
+              pageLinkClassName="page-link"
+              previousClassName="page-item"
+              previousLinkClassName="page-link"
+              nextClassName="page-item"
+              nextLinkClassName="page-link"
+              breakClassName="page-item"
+              breakLinkClassName="page-link"
+              activeClassName="active"
+              disabledClassName="disabled"
+              style={{ textAlign: 'center', marginTop: '20px' }}
+            />
           )}
         </>
       )}

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { useForm } from 'react-hook-form'
@@ -12,13 +12,24 @@ function Register() {
     register,
     handleSubmit,
     reset,
+    watch,
+    trigger,
     formState: { errors, isValid }
   } = useForm({ mode: 'onChange' })
+  const passwordValue = watch('contrasena', '')
+  const confirmPasswordValue = watch('confirmarContrasena', '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [message, setMessage] = useState(null)
 
+  useEffect(() => {
+    if (confirmPasswordValue) {
+      trigger('confirmarContrasena')
+    }
+  }, [passwordValue, confirmPasswordValue, trigger])
+
   const onSubmit = async (formData) => {
+    const { confirmarContrasena, ...payload } = formData
     setLoading(true)
     setError(null)
     setMessage(null)
@@ -26,7 +37,7 @@ function Register() {
       const res = await fetch(`${API_URL}/v1/registrar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Error al registrar usuario')
@@ -108,9 +119,23 @@ function Register() {
             {errors.contrasena && <span className="form-error">{errors.contrasena.message}</span>}
           </label>
 
+          <label>
+            Repetir contraseña
+            <input
+              type="password"
+              {...register('confirmarContrasena', {
+                required: 'Debes repetir la contraseña',
+                validate: (value) => value === passwordValue || 'Las contraseñas no coinciden'
+              })}
+              placeholder="••••••••"
+              disabled={loading}
+            />
+            {errors.confirmarContrasena && <span className="form-error">{errors.confirmarContrasena.message}</span>}
+          </label>
+
           {/* El registro público crea siempre un usuario normal; rol/plan se gestionan desde admin */}
 
-          <button type="submit" disabled={loading}>{loading ? 'Registrando...' : 'Registrar'}</button>
+          <button type="submit" disabled={loading || !isValid}>{loading ? 'Registrando...' : 'Registrar'}</button>
         </form>
 
         {message && <div className="alert success">{message}</div>}

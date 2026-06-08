@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
+import ReactPaginate from 'react-paginate'
 import { API_URL } from './config'
 
 function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }) {
   const [libros, setLibros] = useState([])
-  const [createForm, setCreateForm] = useState({titulo: '', autor: '', genero: '', fecha: '', sinopsis: '', imagenURL: ''})
+  const [createForm, setCreateForm] = useState({titulo: '', autor: '', genero: '', fecha: '', sinopsis: '', imagenFile: null})
   const [filterGenero, setFilterGenero] = useState('')
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({ titulo: '', autor: '', genero: '', fecha: '', sinopsis: '', imagenURL: '', imagenFile: null })
@@ -100,20 +101,22 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
     setMessage(null)
 
     try {
+      const formData = new FormData()
+      formData.append('titulo', createForm.titulo)
+      formData.append('autor', createForm.autor)
+      formData.append('genero', createForm.genero)
+      if (createForm.fecha) formData.append('fecha', new Date(createForm.fecha).toISOString())
+      formData.append('sinopsis', createForm.sinopsis)
+      if (createForm.imagenFile) {
+        formData.append('imagen', createForm.imagenFile)
+      }
+
       const response = await fetch(`${API_URL}/v1/libros`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...authHeaders
         },
-        body: JSON.stringify({
-          titulo: createForm.titulo,
-          autor: createForm.autor,
-          genero: createForm.genero,
-          fecha: createForm.fecha,
-          sinopsis: createForm.sinopsis,
-          imagenURL: createForm.imagenURL
-        })
+        body: formData
       })
 
       const data = await response.json()
@@ -130,7 +133,7 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
         genero: '',
         fecha: '',
         sinopsis: '',
-        imagenURL: ''
+        imagenFile: null
       })
 
       fetchLibros()
@@ -148,6 +151,10 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
   const handleCancelEdit = () => {
     setEditingId(null)
     setEditForm({ titulo: '', autor: '', genero: '', fecha: '', sinopsis: '' })
+  }
+
+  const handlePageChange = (event) => {
+    setPage(event.selected + 1)
   }
 
   const handleSubmitEdit = async (e) => {
@@ -343,13 +350,14 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
     </label>
 
     <label>
-      URL de imagen
+      Portada
       <input
-        value={createForm.imagenURL}
+        type="file"
+        accept="image/*"
         onChange={(e) =>
           setCreateForm((prev) => ({
             ...prev,
-            imagenURL: e.target.value
+            imagenFile: e.target.files[0] || null
           }))
         }
       />
@@ -518,27 +526,27 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
       )}
 
       {totalPages > 1 && (
-        <div className="pagination-controls">
-          <button
-            type="button"
-            className="btn btn--secondary"
-            onClick={() => setPage((current) => Math.max(1, current - 1))}
-            disabled={localLoading || page <= 1}
-          >
-            Anterior
-          </button>
-          <span>
-            Página {page} de {totalPages}
-          </span>
-          <button
-            type="button"
-            className="btn btn--secondary"
-            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-            disabled={localLoading || page >= totalPages}
-          >
-            Siguiente
-          </button>
-        </div>
+        <ReactPaginate
+          previousLabel="← Anterior"
+          nextLabel="Siguiente →"
+          breakLabel="..."
+          pageCount={totalPages}
+          marginPagesDisplayed={2}
+          pageRangeDisplayed={3}
+          onPageChange={handlePageChange}
+          forcePage={page - 1}
+          containerClassName="pagination-controls"
+          pageClassName="page-item"
+          pageLinkClassName="page-link"
+          previousClassName="page-item"
+          previousLinkClassName="page-link"
+          nextClassName="page-item"
+          nextLinkClassName="page-link"
+          breakClassName="page-item"
+          breakLinkClassName="page-link"
+          activeClassName="active"
+          disabledClassName="disabled"
+        />
       )}
 
       {deleteConfirm.visible && (

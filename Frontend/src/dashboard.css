@@ -69,12 +69,93 @@
   justify-content: center;
   align-items: center;
   margin-top: 20px;
+  list-style: none;
+  padding: 0;
 }
 
 .pagination-controls span {
   min-width: 140px;
   text-align: center;
 }
+
+.pagination-controls .page-item {
+  display: inline-block;
+}
+
+.pagination-controls .page-item .page-link {
+  display: inline-block;
+  padding: 8px 12px;
+  margin: 0 4px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #0969da;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-controls .page-item .page-link:hover:not(.disabled) {
+  background-color: #f6f8fa;
+  border-color: #0969da;
+}
+
+.pagination-controls .page-item.active .page-link {
+  background-color: #0969da;
+  color: white;
+  border-color: #0969da;
+}
+
+.pagination-controls .page-item.disabled .page-link {
+  color: #6a737d;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  list-style: none;
+  padding: 0;
+}
+
+.pagination .page-item {
+  display: inline-block;
+}
+
+.pagination .page-item .page-link {
+  display: inline-block;
+  padding: 8px 12px;
+  margin: 0 4px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #0969da;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination .page-item .page-link:hover:not(.disabled) {
+  background-color: #f6f8fa;
+  border-color: #0969da;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #0969da;
+  color: white;
+  border-color: #0969da;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #6a737d;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 
 /* Lists and Items */
 .dashboard-list {
