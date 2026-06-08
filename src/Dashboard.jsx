@@ -24,6 +24,9 @@ function Dashboard() {
   const [libroSeleccionado, setLibroSeleccionado] = useState('')
   const [criticasLibro, setCriticasLibro] = useState([])
   const [informeUso, setInformeUso] = useState(null);
+  const CRITICAS_LIMIT = 5
+  const criticasToDisplay = criticas.slice(0, CRITICAS_LIMIT)
+  const criticasLibroToDisplay = criticasLibro.slice(0, CRITICAS_LIMIT)
   const dispatch = useDispatch()
   const { token, plan: userPlan, role: userRole } = useSelector((state) => state.auth)
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {}
@@ -427,7 +430,7 @@ const renderLabel = ({ name, value, percent }) => `${name}: ${value} (${percent.
             {!loading && criticas.length === 0 && <p>No hay críticas todavía. Agrega una nueva para que aparezca aquí.</p>}
             {!loading && criticas.length > 0 && (
               <ul className="dashboard-list">
-                {criticas.map((critica) => (
+                {criticasToDisplay.map((critica) => (
                   <li key={critica.id} className="dashboard-item">
                     {editingId === critica.id ? (
                       <form onSubmit={handleSubmitEdit} className="critica-edit-form">
@@ -577,7 +580,7 @@ const renderLabel = ({ name, value, percent }) => `${name}: ${value} (${percent.
             {!loading && criticasLibro.length > 0 && (
               <ul className="dashboard-list">
                 <strong>Críticas para: {libros.find((l) => l.id === libroSeleccionado)?.titulo || 'Libro no disponible'}</strong>
-                {criticasLibro.map((critica) => (
+                {criticasLibroToDisplay.map((critica) => (
                   <li key={critica.id} className="dashboard-item">
 
                     <p>

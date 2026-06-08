@@ -11,7 +11,7 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
   const [deleteConfirm, setDeleteConfirm] = useState({ visible: false, libroId: null })
   const [localLoading, setLocalLoading] = useState(false)
   const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
+  const [limit] = useState(5)
   const [totalPages, setTotalPages] = useState(1)
   const [totalLibros, setTotalLibros] = useState(0)
   const [generos, setGeneros] = useState([])
