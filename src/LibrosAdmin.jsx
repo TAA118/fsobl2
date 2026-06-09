@@ -7,7 +7,6 @@ function LibrosAdmin() {
   const { token, role: userRole } = useSelector((state) => state.auth)
   const [libros, setLibros] = useState([])
   const [createForm, setCreateForm] = useState({titulo: '', autor: '', genero: '', fecha: '', sinopsis: ''})
-  const [filterGenero, setFilterGenero] = useState('')
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({ titulo: '', autor: '', genero: '', fecha: '', sinopsis: '', imagenURL: '', imagenFile: null })
   const [deleteConfirm, setDeleteConfirm] = useState({ visible: false, libroId: null })
@@ -57,12 +56,7 @@ function LibrosAdmin() {
     setError(null)
 
     try {
-      let url = `${API_URL}/v1/libros?limit=${limit}&page=${page}`
-      if (filterGenero) {
-        url += `&genero=${encodeURIComponent(filterGenero)}`
-      }
-      
-      const response = await fetch(url, {
+      const response = await fetch(`${API_URL}/v1/libros?limit=${limit}&page=${page}`, {
         headers: {
           'Content-Type': 'application/json',
           ...authHeaders
@@ -82,7 +76,7 @@ function LibrosAdmin() {
       setLoading(false)
       setLocalLoading(false)
     }
-  }, [authHeaders, filterGenero, limit, page, userRole])
+  }, [authHeaders, limit, page, userRole])
 
   useEffect(() => {
     if (userRole === 'admin') {
@@ -377,24 +371,6 @@ function LibrosAdmin() {
 </div>
 
       <div className="dashboard-actions">
-        <label>
-          Género
-          <select
-            value={filterGenero}
-            onChange={(e) => {
-              setFilterGenero(e.target.value)
-              setPage(1)
-            }}
-            disabled={localLoading}
-          >
-            <option value="">Todos</option>
-            {generos.map((genero) => (
-              <option key={genero.id} value={genero.nombre}>
-                {genero.nombre}
-              </option>
-            ))}
-          </select>
-        </label>
         <button type="button" className="btn btn--secondary" style={{ height: '40px' }} onClick={fetchLibros} disabled={localLoading}>
           {localLoading ? 'Recargando...' : 'Recargar'}
         </button>

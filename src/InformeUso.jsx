@@ -10,21 +10,41 @@ function InformeUso() {
   const [error, setError] = useState(null)
 
   const fetchInformeUso = useCallback(async () => {
+    const endpoints = [
+      '/v1/informe-uso',
+      '/v1/informeUso',
+      '/v1/informe/uso',
+      '/v1/estadisticas/uso'
+    ]
+
     try {
       setLoading(true)
       setError(null)
 
-      const res = await fetch(`${API_URL}/v1/informe-uso`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+      let lastError = 'Error al obtener el informe'
+
+      for (const endpoint of endpoints) {
+        const res = await fetch(`${API_URL}${endpoint}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        })
+
+        const contentType = res.headers.get('content-type') || ''
+        const data = contentType.includes('application/json')
+          ? await res.json()
+          : null
+
+        if (res.ok && data) {
+          setInformeUso(data)
+          return
         }
-      })
 
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || 'Error al obtener el informe')
+        lastError = data?.message || `No se encontró el informe en ${endpoint}`
+      }
 
-      setInformeUso(data)
+      throw new Error(lastError)
     } catch (err) {
       setError(err.message)
     } finally {
