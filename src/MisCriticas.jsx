@@ -1,47 +1,24 @@
-import { useState, useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useEffect, useState } from 'react'
+import Paginate from './Paginate.jsx'
 import { API_URL } from './config.js'
 
-import MisCriticas from './MisCriticas.jsx'
-import LibrosAdmin from './LibrosAdmin.jsx'
-import GenerosAdmin from './GenerosAdmin.jsx'
-import EventosTicketmaster from './EventosTicketmaster.jsx'
-import CambioPlan from './CambioPlan.jsx'
-import InformeUso from './InformeUso.jsx'
-import Paginate from './Paginate.jsx'
+function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage }) {
+  const [criticas, setCriticas] = useState([])
+  const [editingId, setEditingId] = useState(null)
+  const [editForm, setEditForm] = useState({ puntaje: 5, comentario: '' })
 
-import { setPlan } from './store/authSlice.js'
+  const [page, setPage] = useState(1)
+  const LIMIT = 5
 
-function Dashboard() {
-  const [view, setView] = useState('inicio')
-
-  const [libros, setLibros] = useState([])
-  const [informeUso, setInformeUso] = useState(null)
-
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [message, setMessage] = useState(null)
-
-  const dispatch = useDispatch()
-  const { token, plan: userPlan, role: userRole } = useSelector(
-    (state) => state.auth
-  )
-
-  const authHeaders = token
-    ? { Authorization: `Bearer ${token}` }
-    : {}
-
-  // 🧠 cargar plan
-  useEffect(() => {
-    const cached = localStorage.getItem('plan')
-    if (cached) dispatch(setPlan(cached))
-  }, [dispatch])
-
-  const fetchLibros = async () => {
+  // -------------------------
+  // FETCH MIS CRÍTICAS
+  // -------------------------
+  const fetchMisCriticas = async () => {
     try {
       setLoading(true)
+      setError(null)
 
-      const res = await fetch(`${API_URL}/v1/libros`, {
+      const res = await fetch(`${API_URL}/v1/criticas`, {
         headers: {
           'Content-Type': 'application/json',
           ...authHeaders
@@ -52,7 +29,7 @@ function Dashboard() {
 
       if (!res.ok) throw new Error(data.message)
 
-      setLibros(data.libros || [])
+      setCriticas(data.criticas || [])
     } catch (err) {
       setError(err.message)
     } finally {
@@ -60,19 +37,59 @@ function Dashboard() {
     }
   }
 
-  const fetchInformeUso = async () => {
+  useEffect(() => {
+    fetchMisCriticas()
+  }, [])
+
+  // -------------------------
+  // PAGINACIÓN
+  // -------------------------
+  const criticasToDisplay = criticas.slice(
+    (page - 1) * LIMIT,
+    page * LIMIT
+  )
+
+  // -------------------------
+  // EDIT
+  // -------------------------
+  const handleEditClick = (critica) => {
+    setEditingId(critica.id)
+    setEditForm({
+      puntaje: critica.puntaje,
+      comentario: critica.comentario
+    })
+  }
+
+  const handleCancelEdit = () => {
+    setEditingId(null)
+    setEditForm({ puntaje: 5, comentario: '' })
+  }
+
+  const handleSubmitEdit = async (e) => {
+    e.preventDefault()
+
     try {
       setLoading(true)
 
-      const res = await fetch(`${API_URL}/v1/criticas/informe/uso`, {
-        headers: authHeaders
+      const res = await fetch(`${API_URL}/v1/criticas/${editingId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders
+        },
+        body: JSON.stringify(editForm)
       })
 
       const data = await res.json()
 
       if (!res.ok) throw new Error(data.message)
 
-      setInformeUso(data)
+      setCriticas((prev) =>
+        prev.map((c) => (c.id === editingId ? data : c))
+      )
+
+      setMessage('Crítica actualizada')
+      handleCancelEdit()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -80,147 +97,114 @@ function Dashboard() {
     }
   }
 
-  const handleViewChange = (nextView) => {
-    setError(null)
-    setMessage(null)
-    setView(nextView)
+  // -------------------------
+  // DELETE
+  // -------------------------
+  const handleDelete = async (id) => {
+    try {
+      setLoading(true)
 
-    if (nextView === 'agregarCritica') fetchLibros()
-    if (nextView === 'criticasLibro') fetchLibros()
-    if (nextView === 'informeUso') fetchInformeUso()
+      const res = await fetch(`${API_URL}/v1/criticas/${id}`, {
+        method: 'DELETE',
+        headers: authHeaders
+      })
+
+      if (!res.ok) throw new Error('Error al eliminar')
+
+      setCriticas((prev) => prev.filter((c) => c.id !== id))
+      setMessage('Crítica eliminada')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const isAdmin = userRole === 'admin'
-  const isPremium = userPlan === 'premium'
-
+  // -------------------------
+  // UI
+  // -------------------------
   return (
-    <section className="dashboard">
-      <div className="register-card dashboard-panel">
-
-        {/* HEADER */}
-        <div className="register-header">
-          <h1>Dashboard</h1>
-          <p>Selecciona una acción</p>
-        </div>
-
-        {/* BOTONES */}
-        <div className="dashboard-actions">
-
-          <button onClick={() => setView('misCriticas')}>
-            Mis críticas
-          </button>
-
-          <button onClick={() => setView('agregarCritica')}>
-            Agregar crítica
-          </button>
-
-          <button onClick={() => setView('criticasLibro')}>
-            Buscar críticas por libro
-          </button>
-
-          <button onClick={() => setView('informeUso')}>
-            Informe de uso
-          </button>
-
-          <button onClick={() => setView('eventos')}>
-            Eventos
-          </button>
-
-          {isAdmin && (
-            <button onClick={() => setView('adminLibros')}>
-              Administrar libros
-            </button>
-          )}
-
-          {isAdmin && (
-            <button onClick={() => setView('adminGeneros')}>
-              Administrar géneros
-            </button>
-          )}
-
-          <button
-            disabled={isPremium}
-            onClick={() => setView('cambioPlan')}
-          >
-            Cambio de plan
-          </button>
-        </div>
-
-        {/* ERRORES */}
-        {error && <div className="alert error">{error}</div>}
-        {message && <div className="alert success">{message}</div>}
-
-        {/* VISTAS */}
-        {view === 'inicio' && (
-          <p>Elegí una opción del menú</p>
-        )}
-
-        {view === 'misCriticas' && (
-          <MisCriticas
-            authHeaders={authHeaders}
-            loading={loading}
-            setLoading={setLoading}
-            setError={setError}
-            setMessage={setMessage}
-          />
-        )}
-
-        {view === 'agregarCritica' && (
-          <p>Aquí irá AgregarCritica.jsx (luego lo separás)</p>
-        )}
-
-        {view === 'criticasLibro' && (
-          <p>Aquí irá CriticasPorLibro.jsx</p>
-        )}
-
-        {view === 'informeUso' && informeUso && (
-          <InformeUso informeUso={informeUso} />
-        )}
-
-        {view === 'eventos' && (
-          <EventosTicketmaster
-            loading={loading}
-            setLoading={setLoading}
-            setError={setError}
-            setMessage={setMessage}
-          />
-        )}
-
-        {view === 'adminLibros' && (
-          <LibrosAdmin
-            authHeaders={authHeaders}
-            loading={loading}
-            setLoading={setLoading}
-            setError={setError}
-            setMessage={setMessage}
-            userRole={userRole}
-          />
-        )}
-
-        {view === 'adminGeneros' && (
-          <GenerosAdmin
-            authHeaders={authHeaders}
-            loading={loading}
-            setLoading={setLoading}
-            setError={setError}
-            setMessage={setMessage}
-            userRole={userRole}
-          />
-        )}
-
-        {view === 'cambioPlan' && (
-          <CambioPlan
-            authHeaders={authHeaders}
-            loading={loading}
-            setLoading={setLoading}
-            setError={setError}
-            setMessage={setMessage}
-          />
-        )}
-
+    <div className="dashboard-results">
+      <div className="register-header">
+        <h2>Mis críticas</h2>
       </div>
-    </section>
+
+      {loading && <p>Cargando...</p>}
+
+      {!loading && criticas.length === 0 && (
+        <p>No tenés críticas todavía</p>
+      )}
+
+      <ul className="dashboard-list">
+        {criticasToDisplay.map((critica) => (
+          <li key={critica.id} className="dashboard-item">
+
+            {editingId === critica.id ? (
+              <form onSubmit={handleSubmitEdit}>
+                <label>
+                  Puntaje
+                  <select
+                    value={editForm.puntaje}
+                    onChange={(e) =>
+                      setEditForm((p) => ({
+                        ...p,
+                        puntaje: Number(e.target.value)
+                      }))
+                    }
+                  >
+                    {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <label>
+                  Comentario
+                  <textarea
+                    value={editForm.comentario}
+                    onChange={(e) =>
+                      setEditForm((p) => ({
+                        ...p,
+                        comentario: e.target.value
+                      }))
+                    }
+                  />
+                </label>
+
+                <button type="submit">Guardar</button>
+                <button type="button" onClick={handleCancelEdit}>
+                  Cancelar
+                </button>
+              </form>
+            ) : (
+              <>
+                <strong>{critica.libro?.titulo}</strong>
+                <p>Puntaje: {critica.puntaje}</p>
+                <p>{critica.comentario}</p>
+
+                <button onClick={() => handleEditClick(critica)}>
+                  Editar
+                </button>
+
+                <button onClick={() => handleDelete(critica.id)}>
+                  Eliminar
+                </button>
+              </>
+            )}
+
+          </li>
+        ))}
+      </ul>
+
+      {criticas.length > LIMIT && (
+        <Paginate
+          pageCount={Math.ceil(criticas.length / LIMIT)}
+          currentPage={page}
+          onPageChange={setPage}
+        />
+      )}
+    </div>
   )
 }
 
-export default Dashboard
+export default MisCriticas
