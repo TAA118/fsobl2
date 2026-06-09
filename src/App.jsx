@@ -4,7 +4,6 @@ import Login from './Login'
 import Register from './Register'
 import Dashboard from './Dashboard'
 import Welcome from './Welcome'
-import DetalleNota from './DetalleNota'
 import RutaNoEncontrada from './RutaNoEncontrada'
 
 function App() {
@@ -17,7 +16,6 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Welcome />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="detalle-nota/:id" element={<DetalleNota />} />
         </Route>
 
         <Route path="*" element={<RutaNoEncontrada />} />
