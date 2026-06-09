@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux'
 import ReactPaginate from 'react-paginate'
 import { API_URL } from './config.js'
 
-function EventosTicketmaster({ loading, setError, setMessage }) {
+function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
   const [ciudad, setCiudad] = useState('')
   const [eventos, setEventos] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
@@ -14,7 +14,13 @@ function EventosTicketmaster({ loading, setError, setMessage }) {
   const { token } = useSelector((state) => state.auth)
 
   // -------------------------
-  // BUSCAR EVENTOS
+  // helper anti error #130
+  // -------------------------
+  const safeText = (v) =>
+    typeof v === 'object' ? v?.text || v?.value || '' : v || ''
+
+  // -------------------------
+  // buscar eventos
   // -------------------------
   const handleBuscarEventos = async (e) => {
     e.preventDefault()
@@ -25,7 +31,7 @@ function EventosTicketmaster({ loading, setError, setMessage }) {
     }
 
     if (!token) {
-      setError('No hay token de autenticación')
+      setError('Debes iniciar sesión')
       return
     }
 
@@ -46,12 +52,19 @@ function EventosTicketmaster({ loading, setError, setMessage }) {
 
       const data = await res.json()
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Error al buscar eventos')
-      }
+      if (!res.ok) throw new Error(data.error || 'Error al buscar eventos')
 
-      // 🔥 TU BACKEND YA DEVUELVE "eventos" LISTOS
-      setEventos(data.eventos || [])
+      const eventosNormalizados = (data.eventos || []).map((e) => ({
+        id: e.id,
+        nombre: safeText(e.nombre),
+        venue: safeText(e.venue),
+        descripcion: safeText(e.descripcion),
+        fecha_inicio: e.fecha_inicio || null,
+        imagen: e.imagen || null,
+        url: e.url || '#'
+      }))
+
+      setEventos(eventosNormalizados)
       setTotalPages(data.totalPages || 1)
       setCurrentPage(1)
       setCiudadBuscada(data.ciudad || ciudad)
@@ -68,17 +81,18 @@ function EventosTicketmaster({ loading, setError, setMessage }) {
   }
 
   // -------------------------
-  // PAGINACIÓN
+  // paginación
   // -------------------------
   const handlePaginacion = async (page) => {
     if (!token) return
 
     setEventosLoading(true)
-    setError(null)
 
     try {
       const res = await fetch(
-        `${API_URL}/v1/ciudad/${encodeURIComponent(ciudadBuscada)}?page=${page}&limit=5`,
+        `${API_URL}/v1/ciudad/${encodeURIComponent(
+          ciudadBuscada
+        )}?page=${page}&limit=5`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -89,11 +103,19 @@ function EventosTicketmaster({ loading, setError, setMessage }) {
 
       const data = await res.json()
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Error al cargar eventos')
-      }
+      if (!res.ok) throw new Error(data.error || 'Error al paginar')
 
-      setEventos(data.eventos || [])
+      const eventosNormalizados = (data.eventos || []).map((e) => ({
+        id: e.id,
+        nombre: safeText(e.nombre),
+        venue: safeText(e.venue),
+        descripcion: safeText(e.descripcion),
+        fecha_inicio: e.fecha_inicio || null,
+        imagen: e.imagen || null,
+        url: e.url || '#'
+      }))
+
+      setEventos(eventosNormalizados)
       setCurrentPage(page)
 
       window.scrollTo(0, 0)
@@ -108,14 +130,12 @@ function EventosTicketmaster({ loading, setError, setMessage }) {
     handlePaginacion(e.selected + 1)
   }
 
-  // -------------------------
-  // RENDER
-  // -------------------------
   return (
     <div className="dashboard-results">
+
       <div className="register-header">
         <h2>Eventos literarios</h2>
-        <p>Busca eventos en una ciudad</p>
+        <p>Busca eventos por ciudad</p>
       </div>
 
       {/* FORM */}
@@ -125,65 +145,83 @@ function EventosTicketmaster({ loading, setError, setMessage }) {
           <input
             value={ciudad}
             onChange={(e) => setCiudad(e.target.value)}
-            placeholder="Ej: Madrid, Buenos Aires"
+            placeholder="Ej: Madrid, Buenos Aires..."
             required
           />
         </label>
 
-        <button type="submit" disabled={eventosLoading || loading}>
+        <button
+          type="submit"
+          className="btn btn--primary"
+          disabled={eventosLoading || loading}
+        >
           {eventosLoading ? 'Buscando...' : 'Buscar'}
         </button>
       </form>
 
-      {/* RESULTADOS */}
+      {/* INFO */}
       {eventos.length > 0 && (
         <>
-          <div className="dashboard-meta">
-            <p><strong>Ciudad:</strong> {ciudadBuscada}</p>
-            <p><strong>Página:</strong> {currentPage} / {totalPages}</p>
+          <div className="eventos-info">
+            <p>
+              <strong>Ciudad:</strong> {ciudadBuscada}
+            </p>
+            <p>
+              <strong>Página:</strong> {currentPage} / {totalPages}
+            </p>
           </div>
 
+          {/* LISTA */}
           <ul className="dashboard-list">
-            {Array.isArray(eventos) &&
-              eventos.map((evento) => (
-                <li key={evento.id} className="dashboard-item">
-                  {evento.imagen && (
-                    <img
-                      src={evento.imagen}
-                      alt={evento.nombre}
-                      style={{ maxWidth: '100%', maxHeight: 200 }}
-                    />
-                  )}
+            {eventos.map((evento) => (
+              <li key={evento.id} className="dashboard-item">
 
-                  <strong>{evento.nombre}</strong>
+                {evento.imagen && (
+                  <img
+                    src={evento.imagen}
+                    alt={evento.nombre}
+                    style={{
+                      width: '100%',
+                      maxHeight: '200px',
+                      objectFit: 'cover',
+                      borderRadius: '8px',
+                      marginBottom: '10px'
+                    }}
+                  />
+                )}
 
-                  <p>
-                    <strong>Lugar:</strong> {evento.venue || 'No disponible'}
-                  </p>
+                <strong>{evento.nombre}</strong>
 
-                  <p>
-                    <strong>Fecha:</strong>{' '}
-                    {evento.fecha_inicio
-                      ? new Date(evento.fecha_inicio).toLocaleString()
-                      : 'No disponible'}
-                  </p>
+                <p>
+                  <strong>Lugar:</strong> {evento.venue}
+                </p>
 
-                  <p>{evento.descripcion}</p>
+                <p>
+                  <strong>Fecha:</strong>{' '}
+                  {evento.fecha_inicio
+                    ? new Date(evento.fecha_inicio).toLocaleString('es-ES')
+                    : 'No disponible'}
+                </p>
 
-                  <a
-                    href={evento.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn--primary"
-                  >
-                    Ver más
-                  </a>
-                </li>
-              ))}
+                <p>{evento.descripcion}</p>
+
+                <a
+                  href={evento.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn--secondary"
+                >
+                  Ver detalles
+                </a>
+              </li>
+            ))}
           </ul>
 
+          {/* PAGINACION */}
           {totalPages > 1 && (
             <ReactPaginate
+              previousLabel="←"
+              nextLabel="→"
               pageCount={totalPages}
               onPageChange={handlePageChange}
               forcePage={currentPage - 1}
@@ -194,8 +232,9 @@ function EventosTicketmaster({ loading, setError, setMessage }) {
         </>
       )}
 
+      {/* EMPTY */}
       {!eventosLoading && eventos.length === 0 && ciudadBuscada && (
-        <p>No se encontraron eventos en {ciudadBuscada}</p>
+        <p>No se encontraron eventos para {ciudadBuscada}</p>
       )}
     </div>
   )
