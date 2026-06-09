@@ -106,20 +106,22 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
     setMessage(null)
 
     try {
-      const formData = new FormData()
-      formData.append('titulo', createForm.titulo)
-      formData.append('autor', createForm.autor)
-      formData.append('genero', createForm.genero)
-      if (createForm.fecha) formData.append('fecha', new Date(createForm.fecha).toISOString())
-      formData.append('sinopsis', createForm.sinopsis)
+      const body = {
+        titulo: createForm.titulo,
+        autor: createForm.autor,
+        genero: createForm.genero,
+        fecha: createForm.fecha ? new Date(createForm.fecha).toISOString() : null,
+        sinopsis: createForm.sinopsis
+        }
 
       const response = await fetch(`${API_URL}/v1/libros`, {
-        method: 'POST',
-        headers: {
-          ...authHeaders
-        },
-        body: formData
-      })
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders
+          },
+          body: JSON.stringify(body)
+        })
 
       const data = await response.json()
 
