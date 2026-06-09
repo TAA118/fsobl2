@@ -129,6 +129,7 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
   }
 
   return (
+    console.log('EVENTOS RAW:', eventos),
     <div className="dashboard-results">
 
       <div className="register-header">
@@ -181,10 +182,11 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
                   />
                 )}
 
-                <strong>{evento.nombre}</strong>
-
-                <p><strong>Lugar:</strong> {evento.venue}</p>
-
+              <strong>{typeof evento.nombre === 'string' ? evento.nombre : JSON.stringify(evento.nombre)}</strong>
+                <p>
+                  <strong>Lugar:</strong>{' '}
+                  {typeof evento.venue === 'string' ? evento.venue : JSON.stringify(evento.venue)}
+                </p>
                 <p>
                   <strong>Fecha:</strong>{' '}
                   {evento.fecha_inicio
@@ -192,8 +194,7 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
                     : 'No disponible'}
                 </p>
 
-                <p>{evento.descripcion}</p>
-
+                <p>{typeof evento.descripcion === 'string' ? evento.descripcion : JSON.stringify(evento.descripcion)}</p>
                 <a
                   href={evento.url}
                   target="_blank"
