@@ -50,23 +50,14 @@ function EventosTicketmaster({ loading, setError, setMessage }) {
         throw new Error(data.error || 'Error al buscar eventos')
       }
 
-      const eventosNormalizados = (data._embedded?.events || []).map((e) => ({
-        id: e.id,
-        nombre: e.name,
-        venue: e._embedded?.venues?.[0]?.name,
-        fecha_inicio: e.dates?.start?.dateTime,
-        imagen: e.images?.[0]?.url,
-        url: e.url,
-        descripcion: e.info || e.pleaseNote || ''
-      }))
-
-      setEventos(eventosNormalizados)
+      // 🔥 TU BACKEND YA DEVUELVE "eventos" LISTOS
+      setEventos(data.eventos || [])
       setTotalPages(data.totalPages || 1)
       setCurrentPage(1)
-      setCiudadBuscada(ciudad)
+      setCiudadBuscada(data.ciudad || ciudad)
 
       setMessage(
-        `Se encontraron ${eventosNormalizados.length} eventos en ${ciudad}`
+        `Se encontraron ${data.total || 0} eventos en ${data.ciudad || ciudad}`
       )
     } catch (err) {
       setError(err.message)
@@ -102,17 +93,7 @@ function EventosTicketmaster({ loading, setError, setMessage }) {
         throw new Error(data.error || 'Error al cargar eventos')
       }
 
-      const eventosNormalizados = (data._embedded?.events || []).map((e) => ({
-        id: e.id,
-        nombre: e.name,
-        venue: e._embedded?.venues?.[0]?.name,
-        fecha_inicio: e.dates?.start?.dateTime,
-        imagen: e.images?.[0]?.url,
-        url: e.url,
-        descripcion: e.info || e.pleaseNote || ''
-      }))
-
-      setEventos(eventosNormalizados)
+      setEventos(data.eventos || [])
       setCurrentPage(page)
 
       window.scrollTo(0, 0)
@@ -134,7 +115,7 @@ function EventosTicketmaster({ loading, setError, setMessage }) {
     <div className="dashboard-results">
       <div className="register-header">
         <h2>Eventos literarios</h2>
-        <p>Busca eventos por ciudad</p>
+        <p>Busca eventos en una ciudad</p>
       </div>
 
       {/* FORM */}
@@ -159,7 +140,7 @@ function EventosTicketmaster({ loading, setError, setMessage }) {
         <>
           <div className="dashboard-meta">
             <p><strong>Ciudad:</strong> {ciudadBuscada}</p>
-            <p><strong>Página:</strong> {currentPage}</p>
+            <p><strong>Página:</strong> {currentPage} / {totalPages}</p>
           </div>
 
           <ul className="dashboard-list">
