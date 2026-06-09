@@ -1,20 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { API_URL } from './config.js'
 import Paginate from './Paginate.jsx'
 
-function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage }) {
+function MisCriticas() {
+  const { token } = useSelector((state) => state.auth)
   const [criticas, setCriticas] = useState([])
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({ puntaje: 5, comentario: '' })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [message, setMessage] = useState(null)
 
   const [page, setPage] = useState(1)
   const LIMIT = 5
 
-  useEffect(() => {
-    fetchCriticas()
-  }, [])
-
-  const fetchCriticas = async () => {
+  const fetchCriticas = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -22,7 +23,7 @@ function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage })
       const res = await fetch(`${API_URL}/v1/criticas`, {
         headers: {
           'Content-Type': 'application/json',
-          ...authHeaders
+          Authorization: `Bearer ${token}`
         }
       })
 
@@ -36,7 +37,13 @@ function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage })
     } finally {
       setLoading(false)
     }
-  }
+  }, [token])
+
+  useEffect(() => {
+    // Carga inicial de datos de la ruta.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchCriticas()
+  }, [fetchCriticas])
 
   const handleEditClick = (critica) => {
     setEditingId(critica.id)
@@ -62,7 +69,7 @@ function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage })
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          ...authHeaders
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(editForm)
       })
@@ -92,7 +99,7 @@ function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage })
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          ...authHeaders
+          Authorization: `Bearer ${token}`
         }
       })
 
@@ -122,6 +129,9 @@ function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage })
         <h2>Mis críticas</h2>
       </div>
 
+      {loading && <p>Cargando...</p>}
+      {message && <div className="alert success">{message}</div>}
+      {error && <div className="alert error">{error}</div>}
       {criticas.length === 0 && <p>No hay críticas todavía.</p>}
 
       <ul className="dashboard-list">

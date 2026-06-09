@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import { API_URL } from './config.js'
@@ -29,7 +29,8 @@ function Register() {
   }, [passwordValue, confirmPasswordValue, trigger])
 
   const onSubmit = async (formData) => {
-    const { confirmarContrasena, ...payload } = formData
+    const payload = { ...formData }
+    delete payload.confirmarContrasena
     setLoading(true)
     setError(null)
     setMessage(null)
@@ -139,7 +140,7 @@ function Register() {
         {message && <div className="alert success">{message}</div>}
         {error && <div className="alert error">{error}</div>}
 
-        <button type="button" className="back-button" onClick={() => navigate('/')}>Volver</button>
+        <Link to="/" className="back-button">Volver</Link>
       </section>
     </div>
   )

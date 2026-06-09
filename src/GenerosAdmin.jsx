@@ -1,20 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { API_URL } from './config'
 
-function GenerosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }) {
+function GenerosAdmin() {
+  const { token, role: userRole } = useSelector((state) => state.auth)
   const [generos, setGeneros] = useState([])
   const [nombre, setNombre] = useState('')
   const [editingId, setEditingId] = useState(null)
   const [editNombre, setEditNombre] = useState('')
   const [localLoading, setLocalLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [message, setMessage] = useState(null)
 
-  useEffect(() => {
-    if (userRole === 'admin') {
-      fetchGeneros()
-    }
-  }, [userRole])
+  const authHeaders = useMemo(() => ({
+    Authorization: `Bearer ${token}`
+  }), [token])
 
-  const fetchGeneros = async () => {
+  const fetchGeneros = useCallback(async () => {
     if (userRole !== 'admin') {
       setError('Acceso denegado. Solo administradores pueden acceder a esta sección.')
       return
@@ -42,7 +45,15 @@ function GenerosAdmin({ authHeaders, setLoading, setError, setMessage, userRole 
       setLoading(false)
       setLocalLoading(false)
     }
-  }
+  }, [authHeaders, userRole])
+
+  useEffect(() => {
+    if (userRole === 'admin') {
+      // Carga inicial de datos de la ruta.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchGeneros()
+    }
+  }, [fetchGeneros, userRole])
 
   const handleSubmitGenero = async (e) => {
     e.preventDefault()
@@ -176,6 +187,10 @@ function GenerosAdmin({ authHeaders, setLoading, setError, setMessage, userRole 
         <h2>Administración de géneros</h2>
         <p>Agrega, edita o elimina géneros. Solo los admins tienen acceso a estas acciones.</p>
       </div>
+
+      {message && <div className="alert success">{message}</div>}
+      {error && <div className="alert error">{error}</div>}
+      {loading && <p>Cargando...</p>}
 
       <form className="register-form" onSubmit={handleSubmitGenero}>
         <label>

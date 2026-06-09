@@ -1,20 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import Paginate from './Paginate.jsx'
 import { API_URL } from './config.js'
 
-function CriticasPorLibro({ authHeaders, setLoading, setError }) {
+function CriticasPorLibro() {
+  const { token } = useSelector((state) => state.auth)
   const [libros, setLibros] = useState([])
   const [libroSeleccionado, setLibroSeleccionado] = useState('')
   const [criticasLibro, setCriticasLibro] = useState([])
   const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   const LIMIT = 5
 
-  useEffect(() => {
-    fetchLibros()
-  }, [])
-
-  const fetchLibros = async () => {
+  const fetchLibros = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -22,7 +22,7 @@ function CriticasPorLibro({ authHeaders, setLoading, setError }) {
       const res = await fetch(`${API_URL}/v1/libros`, {
         headers: {
           'Content-Type': 'application/json',
-          ...authHeaders
+          Authorization: `Bearer ${token}`
         }
       })
 
@@ -38,7 +38,13 @@ function CriticasPorLibro({ authHeaders, setLoading, setError }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [token])
+
+  useEffect(() => {
+    // Carga inicial de datos de la ruta.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchLibros()
+  }, [fetchLibros])
 
   const fetchCriticasLibro = async (idLibro) => {
     if (!idLibro) {
@@ -55,7 +61,7 @@ function CriticasPorLibro({ authHeaders, setLoading, setError }) {
         {
           headers: {
             'Content-Type': 'application/json',
-            ...authHeaders
+            Authorization: `Bearer ${token}`
           }
         }
       )
@@ -87,6 +93,9 @@ function CriticasPorLibro({ authHeaders, setLoading, setError }) {
         <h2>Críticas por libro</h2>
         <p>Selecciona un libro para ver sus críticas</p>
       </div>
+
+      {loading && <p>Cargando...</p>}
+      {error && <div className="alert error">{error}</div>}
 
       <label>
         Libro

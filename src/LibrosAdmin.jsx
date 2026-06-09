@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSelector } from 'react-redux'
 import Paginate from './Paginate.jsx'
 import { API_URL } from './config'
 
-function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }) {
+function LibrosAdmin() {
+  const { token, role: userRole } = useSelector((state) => state.auth)
   const [libros, setLibros] = useState([])
   const [createForm, setCreateForm] = useState({titulo: '', autor: '', genero: '', fecha: '', sinopsis: ''})
   const [filterGenero, setFilterGenero] = useState('')
@@ -15,15 +17,15 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
   const [totalPages, setTotalPages] = useState(1)
   const [totalLibros, setTotalLibros] = useState(0)
   const [generos, setGeneros] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [message, setMessage] = useState(null)
 
-  useEffect(() => {
-  if (userRole === 'admin') {
-    fetchLibros()
-    fetchGeneros()
-  }
-}, [userRole, page, limit, filterGenero])
+  const authHeaders = useMemo(() => ({
+    Authorization: `Bearer ${token}`
+  }), [token])
 
-  const fetchGeneros = async () => {
+  const fetchGeneros = useCallback(async () => {
   try {
     const response = await fetch(`${API_URL}/v1/generos`, {
       headers: {
@@ -42,9 +44,9 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
   } catch (err) {
     setError(err.message)
   }
-}
+}, [authHeaders])
 
-  const fetchLibros = async () => {
+  const fetchLibros = useCallback(async () => {
     if (userRole !== 'admin') {
       setError('Acceso denegado. Sólo administradores pueden ver esta sección.')
       return
@@ -80,7 +82,16 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
       setLoading(false)
       setLocalLoading(false)
     }
-  }
+  }, [authHeaders, filterGenero, limit, page, userRole])
+
+  useEffect(() => {
+    if (userRole === 'admin') {
+      // Carga inicial de datos de la ruta.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchLibros()
+      fetchGeneros()
+    }
+  }, [fetchGeneros, fetchLibros, userRole])
 
   const handleEditClick = (libro) => {
     setEditingId(libro.id)
@@ -148,13 +159,6 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
       setLocalLoading(false)
     }
   }    
-
-  const handleFilterChange = (e) => {
-    setFilterGenero(e.target.value)
-    setPage(1)
-  }
-
-  const uniqueGeneros = Array.from(new Set(libros.map((libro) => libro.genero).filter(Boolean)))
 
   const handleCancelEdit = () => {
     setEditingId(null)
@@ -269,6 +273,10 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
         <p>Lista completa de libros. Edita o elimina los libros desde aquí.</p>
       </div>
 
+      {message && <div className="alert success">{message}</div>}
+      {error && <div className="alert error">{error}</div>}
+      {loading && <p>Cargando...</p>}
+
       <div className="dashboard-item" style={{ marginBottom: '20px' }}>
   <h3>Crear nuevo libro</h3>
 
@@ -369,6 +377,24 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
 </div>
 
       <div className="dashboard-actions">
+        <label>
+          Género
+          <select
+            value={filterGenero}
+            onChange={(e) => {
+              setFilterGenero(e.target.value)
+              setPage(1)
+            }}
+            disabled={localLoading}
+          >
+            <option value="">Todos</option>
+            {generos.map((genero) => (
+              <option key={genero.id} value={genero.nombre}>
+                {genero.nombre}
+              </option>
+            ))}
+          </select>
+        </label>
         <button type="button" className="btn btn--secondary" style={{ height: '40px' }} onClick={fetchLibros} disabled={localLoading}>
           {localLoading ? 'Recargando...' : 'Recargar'}
         </button>

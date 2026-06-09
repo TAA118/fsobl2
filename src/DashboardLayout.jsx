@@ -1,12 +1,10 @@
-import { Outlet, Link, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
 function DashboardLayout() {
   const { plan, role } = useSelector((state) => state.auth)
   const isAdmin = role === 'admin'
   const isPremium = plan === 'premium'
-
-  const navigate = useNavigate()
 
   return (
     <section className="dashboard">
@@ -19,44 +17,45 @@ function DashboardLayout() {
 
         <div className="dashboard-actions">
 
-          <button onClick={() => navigate('mis-criticas')}>
+          <NavLink to="mis-criticas" className="btn">
             Mis críticas
-          </button>
+          </NavLink>
 
-          <button onClick={() => navigate('agregar-critica')}>
+          <NavLink to="agregar-critica" className="btn">
             Agregar crítica
-          </button>
+          </NavLink>
 
-          <button onClick={() => navigate('criticas-libro')}>
+          <NavLink to="criticas-libro" className="btn">
             Buscar críticas por libro
-          </button>
+          </NavLink>
 
-          <button onClick={() => navigate('informe-uso')}>
+          <NavLink to="informe-uso" className="btn">
             Informe de uso
-          </button>
+          </NavLink>
 
-          <button onClick={() => navigate('eventos')}>
+          <NavLink to="eventos" className="btn">
             Eventos
-          </button>
+          </NavLink>
 
           {isAdmin && (
-            <button onClick={() => navigate('admin/libros')}>
+            <NavLink to="admin/libros" className="btn">
               Administrar libros
-            </button>
+            </NavLink>
           )}
 
           {isAdmin && (
-            <button onClick={() => navigate('admin/generos')}>
+            <NavLink to="admin/generos" className="btn">
               Administrar géneros
-            </button>
+            </NavLink>
           )}
 
-          <button
-            disabled={isPremium}
-            onClick={() => navigate('cambio-plan')}
-          >
-            {isPremium ? 'Usuario Premium' : 'Cambio de plan'}
-          </button>
+          {isPremium ? (
+            <span className="btn btn--disabled">Usuario Premium</span>
+          ) : (
+            <NavLink to="cambio-plan" className="btn">
+              Cambio de plan
+            </NavLink>
+          )}
 
         </div>
 

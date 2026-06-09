@@ -13,6 +13,7 @@
   font-weight: 700;
   color: var(--accent);
   font-size: 18px;
+  text-decoration: none;
 }
 
 .nav__right {
@@ -28,6 +29,22 @@
   cursor: pointer;
   font-size: 14px;
   transition: 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.btn.active {
+  background: var(--accent);
+  color: white;
+}
+
+.btn--disabled {
+  background: var(--border);
+  color: var(--text);
+  cursor: default;
+  opacity: 0.7;
 }
 
 .btn--primary {

@@ -1,11 +1,15 @@
+import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { API_URL } from './config.js'
 import { setPlan } from './store/authSlice.js'
 
-function CambioPlan({ authHeaders, loading, setLoading, setError, setMessage }) {
+function CambioPlan() {
   const dispatch = useDispatch()
-  const { plan: userPlan } = useSelector((state) => state.auth)
+  const { plan: userPlan, token } = useSelector((state) => state.auth)
   const isPremium = userPlan === 'premium'
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [message, setMessage] = useState(null)
 
   const handleUpgradePremium = async () => {
     if (isPremium) {
@@ -22,7 +26,7 @@ function CambioPlan({ authHeaders, loading, setLoading, setError, setMessage }) 
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          ...authHeaders
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ plan: 'premium' })
       })
@@ -49,6 +53,8 @@ function CambioPlan({ authHeaders, loading, setLoading, setError, setMessage }) 
       </div>
 
       <div className="dashboard-plan-card">
+        {message && <div className="alert success">{message}</div>}
+        {error && <div className="alert error">{error}</div>}
         <p>Plan actual: <strong>{isPremium ? 'Premium' : 'Plus'}</strong></p>
         <button
           type="button"

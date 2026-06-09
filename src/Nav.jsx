@@ -1,5 +1,5 @@
 import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { logout } from './store/authSlice.js'
 
 const Nav = () => {
@@ -13,7 +13,7 @@ const Nav = () => {
 
   return (
     <nav className="nav">
-      <div className="nav__left">App Libros</div>
+      <Link to="/dashboard" className="nav__left">App Libros</Link>
 
       <div className="nav__right">
         <button onClick={handleOnClickCerrarSesion} className="btn btn--danger">Cerrar sesión</button>

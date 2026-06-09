@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { API_URL } from './config.js'
 
-function AgregarCritica({ authHeaders }) {
+function AgregarCritica() {
   const [libros, setLibros] = useState([])
+  const { token } = useSelector((state) => state.auth)
 
   const [form, setForm] = useState({
     idLibro: '',
@@ -14,16 +16,16 @@ function AgregarCritica({ authHeaders }) {
   const [error, setError] = useState(null)
   const [message, setMessage] = useState(null)
 
-  const fetchLibros = async () => {
+  const fetchLibros = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
 
       const res = await fetch(`${API_URL}/v1/libros`, {
         headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders
-        }
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
       })
 
       const data = await res.json()
@@ -35,11 +37,13 @@ function AgregarCritica({ authHeaders }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [token])
 
   useEffect(() => {
+    // Carga inicial de datos de la ruta.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLibros()
-  }, [])
+  }, [fetchLibros])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -53,7 +57,7 @@ function AgregarCritica({ authHeaders }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...authHeaders
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
           idLibro: form.idLibro,

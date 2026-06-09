@@ -3,13 +3,15 @@ import { useSelector } from 'react-redux'
 import { API_URL } from './config.js'
 import Paginate from './Paginate.jsx'
 
-function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
+function EventosTicketmaster() {
   const [ciudad, setCiudad] = useState('')
   const [eventos, setEventos] = useState([])
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
   const [ciudadBuscada, setCiudadBuscada] = useState('')
   const [eventosLoading, setEventosLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [message, setMessage] = useState(null)
 
   const { token } = useSelector((state) => state.auth)
 
@@ -111,11 +113,14 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
 
         <button
           className="btn btn--primary"
-          disabled={eventosLoading || loading}
+          disabled={eventosLoading}
         >
           {eventosLoading ? 'Buscando...' : 'Buscar'}
         </button>
       </form>
+
+      {message && <div className="alert success">{message}</div>}
+      {error && <div className="alert error">{error}</div>}
 
       {eventos.length > 0 && (
         <>

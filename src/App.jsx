@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import Layout from './Layout'
 import Login from './Login'
 import Register from './Register'
@@ -18,21 +19,36 @@ import AgregarCritica from './AgregarCritica'
 import Welcome from './Welcome'
 import RutaNoEncontrada from './RutaNoEncontrada'
 
+function PublicRoute({ children }) {
+  const { token } = useSelector((state) => state.auth)
+  return token ? <Navigate to="/dashboard" replace /> : children
+}
+
+function PrivateRoute({ children }) {
+  const { token } = useSelector((state) => state.auth)
+  return token ? children : <Navigate to="/login" replace />
+}
+
+function AdminRoute({ children }) {
+  const { role } = useSelector((state) => state.auth)
+  return role === 'admin' ? children : <Navigate to="/dashboard" replace />
+}
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
 
         {/* AUTH */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
         {/* LAYOUT PRINCIPAL */}
         <Route path="/" element={<Layout />}>
           <Route index element={<Welcome />} />
 
           {/* DASHBOARD */}
-          <Route path="dashboard" element={<DashboardLayout />}>
+          <Route path="dashboard" element={<PrivateRoute><DashboardLayout /></PrivateRoute>}>
 
             {/* HOME DEL DASHBOARD */}
             <Route index element={<DashboardHome />} />
@@ -47,8 +63,8 @@ function App() {
             <Route path="eventos" element={<EventosTicketmaster />} />
 
             {/* ADMIN */}
-            <Route path="admin/libros" element={<LibrosAdmin />} />
-            <Route path="admin/generos" element={<GenerosAdmin />} />
+            <Route path="admin/libros" element={<AdminRoute><LibrosAdmin /></AdminRoute>} />
+            <Route path="admin/generos" element={<AdminRoute><GenerosAdmin /></AdminRoute>} />
 
             {/* PLAN */}
             <Route path="cambio-plan" element={<CambioPlan />} />

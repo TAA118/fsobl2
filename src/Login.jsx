@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import { API_URL } from './config.js'
@@ -79,7 +79,7 @@ function Login() {
         <div className="register-note">
         </div>
 
-        <button type="button" className="back-button" onClick={() => navigate('/')}>Volver</button>
+        <Link to="/" className="back-button">Volver</Link>
       </section>
     </div>
   )
