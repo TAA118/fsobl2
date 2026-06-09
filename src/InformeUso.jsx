@@ -1,74 +1,14 @@
-import { useCallback, useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useOutletContext } from 'react-router-dom'
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { API_URL } from './config.js'
 
-function InformeUso() {
-  const { token } = useSelector((state) => state.auth)
-  const [informeUso, setInformeUso] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-
-  const fetchInformeUso = useCallback(async () => {
-    const endpoints = [
-      '/v1/informe-uso',
-      '/v1/informeUso',
-      '/v1/informe/uso',
-      '/v1/estadisticas/uso'
-    ]
-
-    try {
-      setLoading(true)
-      setError(null)
-
-      let lastError = 'Error al obtener el informe'
-
-      for (const endpoint of endpoints) {
-        const res = await fetch(`${API_URL}${endpoint}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          }
-        })
-
-        const contentType = res.headers.get('content-type') || ''
-        const data = contentType.includes('application/json')
-          ? await res.json()
-          : null
-
-        if (res.ok && data) {
-          setInformeUso(data)
-          return
-        }
-
-        lastError = data?.message || `No se encontró el informe en ${endpoint}`
-      }
-
-      throw new Error(lastError)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }, [token])
-
-  useEffect(() => {
-    // Carga inicial de datos de la ruta.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchInformeUso()
-  }, [fetchInformeUso])
-
-  if (loading) {
-    return <p>Cargando informe...</p>
-  }
-
-  if (error) {
-    return <div className="alert error">{error}</div>
-  }
+function InformeUso({ informeUso: informeUsoProp }) {
+  const outletContext = useOutletContext()
+  const informeUso = informeUsoProp || outletContext?.informeUso
 
   if (!informeUso) {
-    return <p>No hay datos de uso para mostrar.</p>
+    return null
   }
+
   const totalCriticas = informeUso.premium + informeUso.plus
   const pieData = [
     {
@@ -84,6 +24,7 @@ function InformeUso() {
   ]
 
   const renderLabel = ({ name, value, percent }) => `${name}: ${value} (${percent.toFixed(0)}%)`
+
   const tooltipFormatter = (value, name) => {
     const percent = totalCriticas > 0 ? ((value / totalCriticas) * 100).toFixed(0) : '0'
     return [`${value} (${percent}%)`, name]
