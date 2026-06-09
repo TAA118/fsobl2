@@ -9,9 +9,6 @@ function AgregarCritica({ authHeaders, setLoading, setError, setMessage }) {
     comentario: ''
   })
 
-  // -------------------------
-  // fetch libros
-  // -------------------------
   const fetchLibros = async () => {
     try {
       setLoading(true)
@@ -38,9 +35,6 @@ function AgregarCritica({ authHeaders, setLoading, setError, setMessage }) {
     fetchLibros()
   }, [])
 
-  // -------------------------
-  // submit crítica
-  // -------------------------
   const handleSubmit = async (e) => {
     e.preventDefault()
 

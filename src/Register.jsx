@@ -133,8 +133,6 @@ function Register() {
             {errors.confirmarContrasena && <span className="form-error">{errors.confirmarContrasena.message}</span>}
           </label>
 
-          {/* El registro público crea siempre un usuario normal; rol/plan se gestionan desde admin */}
-
           <button type="submit" disabled={loading || !isValid}>{loading ? 'Registrando...' : 'Registrar'}</button>
         </form>
 

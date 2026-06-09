@@ -14,13 +14,10 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
   const { token } = useSelector((state) => state.auth)
 
   const LIMIT = 5
-  const MAX_PAGES = 20 // 👈 límite visual para no romper UX
+  const MAX_PAGES = 10
 
   const safeTotalPages = Math.min(totalPages, MAX_PAGES)
 
-  // -------------------------
-  // normalizador anti error #130
-  // -------------------------
   const safeText = (v) => {
     if (!v) return ''
     if (typeof v === 'string') return v
@@ -30,9 +27,6 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
     return ''
   }
 
-  // -------------------------
-  // fetch eventos
-  // -------------------------
   const fetchEventos = async (ciudadParam, pageParam = 1) => {
     if (!token) {
       setError('Debes iniciar sesión')
@@ -82,9 +76,6 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
     }
   }
 
-  // -------------------------
-  // búsqueda
-  // -------------------------
   const handleSubmit = (e) => {
     e.preventDefault()
 
@@ -96,9 +87,6 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
     fetchEventos(ciudad, 1)
   }
 
-  // -------------------------
-  // paginación
-  // -------------------------
   const handlePageChange = (newPage) => {
     fetchEventos(ciudadBuscada, newPage)
   }
@@ -111,7 +99,6 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
         <p>Busca eventos por ciudad</p>
       </div>
 
-      {/* FORM */}
       <form className="register-form" onSubmit={handleSubmit}>
         <label>
           Ciudad
@@ -130,7 +117,6 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
         </button>
       </form>
 
-      {/* LISTA */}
       {eventos.length > 0 && (
         <>
           <ul className="dashboard-list">
@@ -175,7 +161,6 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
             ))}
           </ul>
 
-          {/* PAGINACIÓN LIMITADA */}
           {safeTotalPages > 1 && (
             <Paginate
               pageCount={safeTotalPages}
@@ -186,7 +171,6 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
         </>
       )}
 
-      {/* EMPTY STATE */}
       {!eventosLoading && eventos.length === 0 && ciudadBuscada && (
         <p>No se encontraron eventos para {ciudadBuscada}</p>
       )}

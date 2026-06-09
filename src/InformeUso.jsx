@@ -4,7 +4,6 @@ function InformeUso({ informeUso }) {
   if (!informeUso) {
     return null
   }
-
   const totalCriticas = informeUso.premium + informeUso.plus
   const pieData = [
     {
@@ -20,7 +19,6 @@ function InformeUso({ informeUso }) {
   ]
 
   const renderLabel = ({ name, value, percent }) => `${name}: ${value} (${percent.toFixed(0)}%)`
-
   const tooltipFormatter = (value, name) => {
     const percent = totalCriticas > 0 ? ((value / totalCriticas) * 100).toFixed(0) : '0'
     return [`${value} (${percent}%)`, name]

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { API_URL } from './config.js'
-
 import MisCriticas from './MisCriticas.jsx'
 import LibrosAdmin from './LibrosAdmin.jsx'
 import GenerosAdmin from './GenerosAdmin.jsx'
@@ -14,34 +13,20 @@ import { setPlan } from './store/authSlice.js'
 
 function Dashboard() {
   const [view, setView] = useState('inicio')
-
   const [libros, setLibros] = useState([])
   const [informeUso, setInformeUso] = useState(null)
-
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [message, setMessage] = useState(null)
-
   const dispatch = useDispatch()
-  const { token, plan: userPlan, role: userRole } = useSelector(
-    (state) => state.auth
-  )
+  const { token, plan: userPlan, role: userRole } = useSelector((state) => state.auth)
+  const authHeaders = token? { Authorization: `Bearer ${token}` }: {}
 
-  const authHeaders = token
-    ? { Authorization: `Bearer ${token}` }
-    : {}
-
-  // -------------------------
-  // plan cache
-  // -------------------------
   useEffect(() => {
     const cached = localStorage.getItem('plan')
     if (cached) dispatch(setPlan(cached))
   }, [dispatch])
 
-  // -------------------------
-  // fetch libros
-  // -------------------------
   const fetchLibros = async () => {
     try {
       setLoading(true)
@@ -64,9 +49,6 @@ function Dashboard() {
     }
   }
 
-  // -------------------------
-  // informe uso
-  // -------------------------
   const fetchInformeUso = async () => {
     try {
       setLoading(true)
@@ -86,9 +68,6 @@ function Dashboard() {
     }
   }
 
-  // -------------------------
-  // cambio de vista
-  // -------------------------
   const handleViewChange = (nextView) => {
     setError(null)
     setMessage(null)
@@ -106,13 +85,11 @@ function Dashboard() {
     <section className="dashboard">
       <div className="register-card dashboard-panel">
 
-        {/* HEADER */}
         <div className="register-header">
           <h1>Dashboard</h1>
           <p>Selecciona una acción</p>
         </div>
 
-        {/* BOTONES (ESTILADOS CORRECTAMENTE) */}
         <div className="dashboard-actions">
 
           <button
@@ -185,11 +162,9 @@ function Dashboard() {
 
         </div>
 
-        {/* ERRORES */}
         {error && <div className="alert error">{error}</div>}
         {message && <div className="alert success">{message}</div>}
 
-        {/* VISTAS */}
         {view === 'inicio' && (
           <div className="dashboard-results">
             <h2>Elige una opción</h2>
