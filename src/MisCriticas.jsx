@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import Paginate from './Paginate.jsx'
 import { API_URL } from './config.js'
+import Paginate from './Paginate.jsx'
 
 function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage }) {
   const [criticas, setCriticas] = useState([])
@@ -10,10 +10,11 @@ function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage })
   const [page, setPage] = useState(1)
   const LIMIT = 5
 
-  // -------------------------
-  // FETCH MIS CRÍTICAS
-  // -------------------------
-  const fetchMisCriticas = async () => {
+  useEffect(() => {
+    fetchCriticas()
+  }, [])
+
+  const fetchCriticas = async () => {
     try {
       setLoading(true)
       setError(null)
@@ -37,21 +38,6 @@ function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage })
     }
   }
 
-  useEffect(() => {
-    fetchMisCriticas()
-  }, [])
-
-  // -------------------------
-  // PAGINACIÓN
-  // -------------------------
-  const criticasToDisplay = criticas.slice(
-    (page - 1) * LIMIT,
-    page * LIMIT
-  )
-
-  // -------------------------
-  // EDIT
-  // -------------------------
   const handleEditClick = (critica) => {
     setEditingId(critica.id)
     setEditForm({
@@ -60,16 +46,17 @@ function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage })
     })
   }
 
-  const handleCancelEdit = () => {
+  const handleCancel = () => {
     setEditingId(null)
     setEditForm({ puntaje: 5, comentario: '' })
   }
 
-  const handleSubmitEdit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     try {
       setLoading(true)
+      setError(null)
 
       const res = await fetch(`${API_URL}/v1/criticas/${editingId}`, {
         method: 'PUT',
@@ -88,8 +75,8 @@ function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage })
         prev.map((c) => (c.id === editingId ? data : c))
       )
 
-      setMessage('Crítica actualizada')
-      handleCancelEdit()
+      setMessage('Crítica actualizada correctamente')
+      handleCancel()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -97,22 +84,25 @@ function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage })
     }
   }
 
-  // -------------------------
-  // DELETE
-  // -------------------------
   const handleDelete = async (id) => {
     try {
       setLoading(true)
 
       const res = await fetch(`${API_URL}/v1/criticas/${id}`, {
         method: 'DELETE',
-        headers: authHeaders
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders
+        }
       })
 
-      if (!res.ok) throw new Error('Error al eliminar')
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.message)
+      }
 
       setCriticas((prev) => prev.filter((c) => c.id !== id))
-      setMessage('Crítica eliminada')
+      setMessage('Crítica eliminada correctamente')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -120,27 +110,27 @@ function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage })
     }
   }
 
-  // -------------------------
-  // UI
-  // -------------------------
+  const criticasToShow = criticas.slice(
+    (page - 1) * LIMIT,
+    page * LIMIT
+  )
+
   return (
     <div className="dashboard-results">
+
       <div className="register-header">
         <h2>Mis críticas</h2>
       </div>
 
-      {loading && <p>Cargando...</p>}
-
-      {!loading && criticas.length === 0 && (
-        <p>No tenés críticas todavía</p>
-      )}
+      {criticas.length === 0 && <p>No hay críticas todavía.</p>}
 
       <ul className="dashboard-list">
-        {criticasToDisplay.map((critica) => (
-          <li key={critica.id} className="dashboard-item">
+        {criticasToShow.map((c) => (
+          <li key={c.id} className="dashboard-item">
 
-            {editingId === critica.id ? (
-              <form onSubmit={handleSubmitEdit}>
+            {editingId === c.id ? (
+              <form className="critica-edit-form" onSubmit={handleSubmit}>
+
                 <label>
                   Puntaje
                   <select
@@ -168,27 +158,48 @@ function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage })
                         comentario: e.target.value
                       }))
                     }
+                    rows="3"
                   />
                 </label>
 
-                <button type="submit">Guardar</button>
-                <button type="button" onClick={handleCancelEdit}>
-                  Cancelar
-                </button>
+                <div className="critica-actions">
+                  <button className="btn btn--primary" type="submit">
+                    Guardar
+                  </button>
+
+                  <button
+                    className="btn btn--secondary"
+                    type="button"
+                    onClick={handleCancel}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+
               </form>
             ) : (
               <>
-                <strong>{critica.libro?.titulo}</strong>
-                <p>Puntaje: {critica.puntaje}</p>
-                <p>{critica.comentario}</p>
+                <strong>{c.libro?.titulo}</strong>
 
-                <button onClick={() => handleEditClick(critica)}>
-                  Editar
-                </button>
+                <p>Autor: {c.libro?.autor}</p>
+                <p>Puntaje: {c.puntaje}</p>
+                <p>{c.comentario}</p>
 
-                <button onClick={() => handleDelete(critica.id)}>
-                  Eliminar
-                </button>
+                <div className="critica-actions">
+                  <button
+                    className="btn btn--primary"
+                    onClick={() => handleEditClick(c)}
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    className="btn btn--secondary"
+                    onClick={() => handleDelete(c.id)}
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </>
             )}
 
@@ -203,6 +214,7 @@ function MisCriticas({ authHeaders, loading, setLoading, setError, setMessage })
           onPageChange={setPage}
         />
       )}
+
     </div>
   )
 }
