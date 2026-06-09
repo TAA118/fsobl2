@@ -14,8 +14,13 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
   const { token } = useSelector((state) => state.auth)
 
   const LIMIT = 5
+  const MAX_PAGES = 20 // 👈 límite visual para no romper UX
 
-  // 🔥 FIX CLAVE: evita React error #130
+  const safeTotalPages = Math.min(totalPages, MAX_PAGES)
+
+  // -------------------------
+  // normalizador anti error #130
+  // -------------------------
   const safeText = (v) => {
     if (!v) return ''
     if (typeof v === 'string') return v
@@ -26,7 +31,7 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
   }
 
   // -------------------------
-  // buscar
+  // fetch eventos
   // -------------------------
   const fetchEventos = async (ciudadParam, pageParam = 1) => {
     if (!token) {
@@ -77,9 +82,12 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
     }
   }
 
-  // submit búsqueda
+  // -------------------------
+  // búsqueda
+  // -------------------------
   const handleSubmit = (e) => {
     e.preventDefault()
+
     if (!ciudad.trim()) {
       setError('Ingresa una ciudad')
       return
@@ -88,7 +96,9 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
     fetchEventos(ciudad, 1)
   }
 
-  // paginación (TU componente)
+  // -------------------------
+  // paginación
+  // -------------------------
   const handlePageChange = (newPage) => {
     fetchEventos(ciudadBuscada, newPage)
   }
@@ -97,8 +107,8 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
     <div className="dashboard-results">
 
       <div className="register-header">
-        <h2>Eventos</h2>
-        <p>Busca eventos literarios por ciudad</p>
+        <h2>Eventos literarios</h2>
+        <p>Busca eventos por ciudad</p>
       </div>
 
       {/* FORM */}
@@ -131,7 +141,13 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
                   <img
                     src={evento.imagen}
                     alt={evento.nombre}
-                    style={{ maxWidth: '100%', marginBottom: '10px' }}
+                    style={{
+                      width: '100%',
+                      maxHeight: '200px',
+                      objectFit: 'cover',
+                      marginBottom: '10px',
+                      borderRadius: '8px'
+                    }}
                   />
                 )}
 
@@ -159,10 +175,10 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
             ))}
           </ul>
 
-          {/* TU PAGINATE */}
-          {totalPages > 1 && (
+          {/* PAGINACIÓN LIMITADA */}
+          {safeTotalPages > 1 && (
             <Paginate
-              pageCount={totalPages}
+              pageCount={safeTotalPages}
               currentPage={page}
               onPageChange={handlePageChange}
             />
@@ -170,7 +186,7 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
         </>
       )}
 
-      {/* EMPTY */}
+      {/* EMPTY STATE */}
       {!eventosLoading && eventos.length === 0 && ciudadBuscada && (
         <p>No se encontraron eventos para {ciudadBuscada}</p>
       )}
