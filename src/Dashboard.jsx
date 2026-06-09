@@ -8,7 +8,8 @@ import GenerosAdmin from './GenerosAdmin.jsx'
 import EventosTicketmaster from './EventosTicketmaster.jsx'
 import CambioPlan from './CambioPlan.jsx'
 import InformeUso from './InformeUso.jsx'
-
+import CriticasPorLibro from './CriticasPorLibro.jsx'
+import AgregarCritica from './AgregarCritica.jsx'
 import { setPlan } from './store/authSlice.js'
 
 function Dashboard() {
@@ -207,12 +208,23 @@ function Dashboard() {
         )}
 
         {view === 'agregarCritica' && (
-          <p>Aquí irá AgregarCritica.jsx</p>
+          <AgregarCritica
+            authHeaders={authHeaders}
+            loading={loading}
+            setLoading={setLoading}
+            setError={setError}
+            setMessage={setMessage}
+          />
         )}
 
         {view === 'criticasLibro' && (
-          <p>Aquí irá CriticasPorLibro.jsx</p>
-        )}
+            <CriticasPorLibro
+              authHeaders={authHeaders}
+              loading={loading}
+              setLoading={setLoading}
+              setError={setError}
+            />
+          )}
 
         {view === 'informeUso' && informeUso && (
           <InformeUso informeUso={informeUso} />
