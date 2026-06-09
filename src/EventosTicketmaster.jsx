@@ -1,26 +1,36 @@
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
-import ReactPaginate from 'react-paginate'
 import { API_URL } from './config.js'
+import Paginate from './Paginate.jsx'
 
 function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
   const [ciudad, setCiudad] = useState('')
   const [eventos, setEventos] = useState([])
-  const [currentPage, setCurrentPage] = useState(1)
+  const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
   const [ciudadBuscada, setCiudadBuscada] = useState('')
   const [eventosLoading, setEventosLoading] = useState(false)
+
   const { token } = useSelector((state) => state.auth)
 
-  const handleBuscarEventos = async (e) => {
-    e.preventDefault()
-    if (!ciudad.trim()) {
-      setError('Por favor ingresa el nombre de una ciudad')
-      return
-    }
+  const LIMIT = 5
 
+  // 🔥 FIX CLAVE: evita React error #130
+  const safeText = (v) => {
+    if (!v) return ''
+    if (typeof v === 'string') return v
+    if (typeof v === 'number') return String(v)
+    if (Array.isArray(v)) return v.join(', ')
+    if (typeof v === 'object') return v.text || v.name || ''
+    return ''
+  }
+
+  // -------------------------
+  // buscar
+  // -------------------------
+  const fetchEventos = async (ciudadParam, pageParam = 1) => {
     if (!token) {
-      setError('No hay token de autenticación. Por favor, inicia sesión primero')
+      setError('Debes iniciar sesión')
       return
     }
 
@@ -29,27 +39,36 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
     setMessage(null)
 
     try {
-      const response = await fetch(
-        `${API_URL}/v1/ciudad/${encodeURIComponent(ciudad)}?page=1&limit=5`,
+      const res = await fetch(
+        `${API_URL}/v1/ciudad/${encodeURIComponent(ciudadParam)}?page=${pageParam}&limit=${LIMIT}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            Authorization: `Bearer ${token}`
           }
         }
       )
 
-      const data = await response.json()
+      const data = await res.json()
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al buscar eventos')
-      }
+      if (!res.ok) throw new Error(data.error || 'Error al buscar eventos')
 
-      setEventos(data.eventos || [])
+      const normalized = (data.eventos || []).map((e) => ({
+        id: e.id,
+        nombre: safeText(e.nombre),
+        descripcion: safeText(e.descripcion),
+        venue: safeText(e.venue),
+        imagen: e.imagen || null,
+        url: e.url || '#',
+        fecha_inicio: e.fecha_inicio || null
+      }))
+
+      setEventos(normalized)
       setTotalPages(data.totalPages || 1)
-      setCurrentPage(1)
-      setCiudadBuscada(data.ciudad || ciudad)
-      setMessage(`Se encontraron ${data.total || 0} eventos en ${data.ciudad || ciudad}`)
+      setPage(pageParam)
+      setCiudadBuscada(ciudadParam)
+
+      setMessage(`Se encontraron ${data.total || 0} eventos en ${ciudadParam}`)
     } catch (err) {
       setError(err.message)
       setEventos([])
@@ -58,149 +77,100 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
     }
   }
 
-  const handlePaginacion = async (page) => {
-    if (!token) {
-      setError('No hay token de autenticación')
+  // submit búsqueda
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (!ciudad.trim()) {
+      setError('Ingresa una ciudad')
       return
     }
 
-    setEventosLoading(true)
-    setError(null)
-
-    try {
-      const response = await fetch(
-        `${API_URL}/v1/ciudad/${encodeURIComponent(ciudadBuscada)}?page=${page}&limit=5`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      )
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al cargar eventos')
-      }
-
-      setEventos(data.eventos || [])
-      setCurrentPage(page)
-      window.scrollTo(0, 0)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setEventosLoading(false)
-    }
+    fetchEventos(ciudad, 1)
   }
 
-  const handlePageChange = (event) => {
-    const pageNumber = event.selected + 1
-    handlePaginacion(pageNumber)
+  // paginación (TU componente)
+  const handlePageChange = (newPage) => {
+    fetchEventos(ciudadBuscada, newPage)
   }
 
   return (
     <div className="dashboard-results">
+
       <div className="register-header">
-        <h2>Eventos Literarios</h2>
-        <p>Busca eventos literarios en una ciudad específica</p>
+        <h2>Eventos</h2>
+        <p>Busca eventos literarios por ciudad</p>
       </div>
 
-      <form className="register-form" onSubmit={handleBuscarEventos}>
+      {/* FORM */}
+      <form className="register-form" onSubmit={handleSubmit}>
         <label>
           Ciudad
           <input
-            type="text"
             value={ciudad}
             onChange={(e) => setCiudad(e.target.value)}
-            placeholder="Ej: Buenos Aires, Madrid, México"
-            required
+            placeholder="Ej: Madrid, Buenos Aires..."
           />
         </label>
-        <button type="submit" disabled={eventosLoading || loading}>
-          {eventosLoading ? 'Buscando...' : 'Buscar eventos'}
+
+        <button
+          className="btn btn--primary"
+          disabled={eventosLoading || loading}
+        >
+          {eventosLoading ? 'Buscando...' : 'Buscar'}
         </button>
       </form>
 
+      {/* LISTA */}
       {eventos.length > 0 && (
         <>
-          <div className="eventos-info">
-            <p>
-              <strong>Ciudad:</strong> {ciudadBuscada}
-            </p>
-            <p>
-              <strong>Página:</strong> {currentPage} de {totalPages}
-            </p>
-          </div>
-
           <ul className="dashboard-list">
             {eventos.map((evento) => (
-              <li key={evento.id} className="dashboard-item evento-item">
+              <li key={evento.id} className="dashboard-item">
+
                 {evento.imagen && (
                   <img
                     src={evento.imagen}
                     alt={evento.nombre}
-                    className="evento-imagen"
-                    style={{ maxWidth: '100%', maxHeight: '200px', marginBottom: '10px' }}
+                    style={{ maxWidth: '100%', marginBottom: '10px' }}
                   />
                 )}
+
                 <strong>{evento.nombre}</strong>
+
+                <p>{evento.venue}</p>
+
                 <p>
-                  <strong>Lugar:</strong> {evento.venue || 'No disponible'}
-                </p>
-                <p>
-                  <strong>Fecha:</strong>{' '}
                   {evento.fecha_inicio
-                    ? new Date(evento.fecha_inicio).toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: 'long',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })
-                    : 'No disponible'}
+                    ? new Date(evento.fecha_inicio).toLocaleString()
+                    : 'Sin fecha'}
                 </p>
+
                 <p>{evento.descripcion}</p>
+
                 <a
                   href={evento.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn btn--primary"
-                  style={{ display: 'inline-block', marginTop: '10px' }}
+                  className="btn btn--secondary"
                 >
-                  Ver más detalles
+                  Ver detalles
                 </a>
               </li>
             ))}
           </ul>
 
+          {/* TU PAGINATE */}
           {totalPages > 1 && (
-            <ReactPaginate
-              previousLabel="← Anterior"
-              nextLabel="Siguiente →"
-              breakLabel="..."
+            <Paginate
               pageCount={totalPages}
-              marginPagesDisplayed={2}
-              pageRangeDisplayed={3}
+              currentPage={page}
               onPageChange={handlePageChange}
-              forcePage={currentPage - 1}
-              containerClassName="pagination"
-              pageClassName="page-item"
-              pageLinkClassName="page-link"
-              previousClassName="page-item"
-              previousLinkClassName="page-link"
-              nextClassName="page-item"
-              nextLinkClassName="page-link"
-              breakClassName="page-item"
-              breakLinkClassName="page-link"
-              activeClassName="active"
-              disabledClassName="disabled"
-              style={{ textAlign: 'center', marginTop: '20px' }}
             />
           )}
         </>
       )}
 
+      {/* EMPTY */}
       {!eventosLoading && eventos.length === 0 && ciudadBuscada && (
         <p>No se encontraron eventos para {ciudadBuscada}</p>
       )}
