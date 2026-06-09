@@ -387,15 +387,6 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
         <button type="button" className="btn btn--secondary" style={{ height: '40px' }} onClick={fetchLibros} disabled={localLoading}>
           {localLoading ? 'Recargando...' : 'Recargar'}
         </button>
-        <label>
-          Filtrar por género
-          <select value={filterGenero} onChange={(e) => setFilterGenero(e.target.value)} disabled={localLoading}>
-            <option value="">Todos</option>
-            {uniqueGeneros.map((genero) => (
-              <option key={genero} value={genero}>{genero}</option>
-            ))}
-          </select>
-        </label>
       </div>
 
       {localLoading && <p>Cargando libros...</p>}
