@@ -3,32 +3,34 @@ import { useSelector } from 'react-redux'
 import ReactPaginate from 'react-paginate'
 import { API_URL } from './config.js'
 
-function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
-  const [ciudad, setCiudad] = useState('')
-  const [eventos, setEventos] = useState([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(0)
-  const [ciudadBuscada, setCiudadBuscada] = useState('')
-  const [eventosLoading, setEventosLoading] = useState(false)
-
+function EventosTicketmaster({ setError, setMessage }) {
   const { token } = useSelector((state) => state.auth)
 
-  // 🔥 FIX clave: evitar objetos raros de Ticketmaster
-  const safeText = (v) => {
+  const [ciudad, setCiudad] = useState('')
+  const [eventos, setEventos] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(0)
+  const [ciudadBuscada, setCiudadBuscada] = useState('')
+
+  // -------------------------
+  // helper seguro anti crash React #130
+  // -------------------------
+  const text = (v) => {
     if (!v) return ''
-    if (typeof v === 'string') return v
-    if (typeof v === 'number') return String(v)
-    if (typeof v === 'object') {
-      return v.value || v.name || v.text || JSON.stringify(v)
-    }
+    if (typeof v === 'string' || typeof v === 'number') return String(v)
     return ''
   }
 
-  const handleBuscarEventos = async (e) => {
+  // -------------------------
+  // buscar eventos
+  // -------------------------
+  const buscar = async (e) => {
     e.preventDefault()
 
     if (!ciudad.trim()) {
-      setError('Por favor ingresa una ciudad')
+      setError('Ingresa una ciudad')
       return
     }
 
@@ -37,16 +39,15 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
       return
     }
 
-    setEventosLoading(true)
-    setError(null)
-    setMessage(null)
-
     try {
+      setLoading(true)
+      setError(null)
+      setMessage(null)
+
       const res = await fetch(
-        `${API_URL}/v1/ciudad/${encodeURIComponent(ciudad)}?page=1&limit=5`,
+        `${API_URL}/v1/ciudad/${ciudad}?page=1&limit=5`,
         {
           headers: {
-            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
           }
         }
@@ -54,47 +55,37 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
 
       const data = await res.json()
 
-      if (!res.ok) throw new Error(data.error || 'Error al buscar eventos')
+      if (!res.ok) {
+        throw new Error(data.error || 'Error buscando eventos')
+      }
 
-      const eventosNormalizados = (data.eventos || []).map((e) => ({
-        id: e.id,
-        nombre: safeText(e.nombre),
-        venue: safeText(e.venue),
-        descripcion: safeText(e.descripcion),
-        fecha_inicio: e.fecha_inicio || null,
-        imagen: e.imagen || null,
-        url: e.url || '#'
-      }))
-
-      setEventos(eventosNormalizados)
+      setEventos(data.eventos || [])
       setTotalPages(data.totalPages || 1)
-      setCurrentPage(1)
+      setPage(1)
       setCiudadBuscada(data.ciudad || ciudad)
 
-      setMessage(
-        `Se encontraron ${data.total || 0} eventos en ${data.ciudad || ciudad}`
-      )
+      setMessage(`Se encontraron ${data.total || 0} eventos`)
     } catch (err) {
       setError(err.message)
       setEventos([])
     } finally {
-      setEventosLoading(false)
+      setLoading(false)
     }
   }
 
-  const handlePaginacion = async (page) => {
+  // -------------------------
+  // paginación
+  // -------------------------
+  const cambiarPagina = async (newPage) => {
     if (!token) return
 
-    setEventosLoading(true)
-
     try {
+      setLoading(true)
+
       const res = await fetch(
-        `${API_URL}/v1/ciudad/${encodeURIComponent(
-          ciudadBuscada
-        )}?page=${page}&limit=5`,
+        `${API_URL}/v1/ciudad/${ciudadBuscada}?page=${newPage}&limit=5`,
         {
           headers: {
-            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
           }
         }
@@ -102,118 +93,80 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
 
       const data = await res.json()
 
-      if (!res.ok) throw new Error(data.error || 'Error al paginar')
+      if (!res.ok) {
+        throw new Error(data.error || 'Error en paginación')
+      }
 
-      const eventosNormalizados = (data.eventos || []).map((e) => ({
-        id: e.id,
-        nombre: safeText(e.nombre),
-        venue: safeText(e.venue),
-        descripcion: safeText(e.descripcion),
-        fecha_inicio: e.fecha_inicio || null,
-        imagen: e.imagen || null,
-        url: e.url || '#'
-      }))
-
-      setEventos(eventosNormalizados)
-      setCurrentPage(page)
+      setEventos(data.eventos || [])
+      setPage(newPage)
       window.scrollTo(0, 0)
     } catch (err) {
       setError(err.message)
     } finally {
-      setEventosLoading(false)
+      setLoading(false)
     }
   }
 
-  const handlePageChange = (e) => {
-    handlePaginacion(e.selected + 1)
-  }
-
   return (
-    console.log('EVENTOS RAW:', eventos),
     <div className="dashboard-results">
 
-      <div className="register-header">
-        <h2>Eventos literarios</h2>
-        <p>Busca eventos por ciudad</p>
-      </div>
+      <h2>Eventos Ticketmaster</h2>
 
-      <form className="register-form" onSubmit={handleBuscarEventos}>
-        <label>
-          Ciudad
-          <input
-            value={ciudad}
-            onChange={(e) => setCiudad(e.target.value)}
-            placeholder="Ej: Madrid, Buenos Aires..."
-            required
-          />
-        </label>
+      {/* FORM */}
+      <form onSubmit={buscar} className="register-form">
+        <input
+          value={ciudad}
+          onChange={(e) => setCiudad(e.target.value)}
+          placeholder="Ciudad..."
+        />
 
-        <button
-          type="submit"
-          className="btn btn--primary"
-          disabled={eventosLoading || loading}
-        >
-          {eventosLoading ? 'Buscando...' : 'Buscar'}
+        <button type="submit" disabled={loading}>
+          {loading ? 'Buscando...' : 'Buscar'}
         </button>
       </form>
 
+      {/* LISTA */}
       {eventos.length > 0 && (
         <>
-          <div className="eventos-info">
-            <p><strong>Ciudad:</strong> {ciudadBuscada}</p>
-            <p><strong>Página:</strong> {currentPage} / {totalPages}</p>
-          </div>
+          <p>
+            <strong>Ciudad:</strong> {ciudadBuscada}
+          </p>
 
           <ul className="dashboard-list">
-            {eventos.map((evento) => (
-              <li key={evento.id} className="dashboard-item">
+            {eventos.map((ev) => (
+              <li key={ev.id} className="dashboard-item">
 
-                {evento.imagen && (
-                  <img
-                    src={evento.imagen}
-                    alt={evento.nombre}
-                    style={{
-                      width: '100%',
-                      maxHeight: '200px',
-                      objectFit: 'cover',
-                      borderRadius: '8px',
-                      marginBottom: '10px'
-                    }}
-                  />
-                )}
+                <strong>{text(ev.nombre)}</strong>
 
-              <strong>{typeof evento.nombre === 'string' ? evento.nombre : JSON.stringify(evento.nombre)}</strong>
+                <p>Lugar: {text(ev.venue)}</p>
+
                 <p>
-                  <strong>Lugar:</strong>{' '}
-                  {typeof evento.venue === 'string' ? evento.venue : JSON.stringify(evento.venue)}
-                </p>
-                <p>
-                  <strong>Fecha:</strong>{' '}
-                  {evento.fecha_inicio
-                    ? new Date(evento.fecha_inicio).toLocaleString('es-ES')
+                  Fecha:{' '}
+                  {ev.fecha_inicio
+                    ? new Date(ev.fecha_inicio).toLocaleString()
                     : 'No disponible'}
                 </p>
 
-                <p>{typeof evento.descripcion === 'string' ? evento.descripcion : JSON.stringify(evento.descripcion)}</p>
+                <p>{text(ev.descripcion)}</p>
+
                 <a
-                  href={evento.url}
+                  href={ev.url}
                   target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn--secondary"
+                  rel="noreferrer"
+                  className="btn btn--primary"
                 >
-                  Ver detalles
+                  Ver evento
                 </a>
               </li>
             ))}
           </ul>
 
+          {/* PAGINACION */}
           {totalPages > 1 && (
             <ReactPaginate
-              previousLabel="←"
-              nextLabel="→"
               pageCount={totalPages}
-              onPageChange={handlePageChange}
-              forcePage={currentPage - 1}
+              onPageChange={(e) => cambiarPagina(e.selected + 1)}
+              forcePage={page - 1}
               containerClassName="pagination"
               activeClassName="active"
             />
@@ -221,9 +174,11 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
         </>
       )}
 
-      {!eventosLoading && eventos.length === 0 && ciudadBuscada && (
-        <p>No se encontraron eventos para {ciudadBuscada}</p>
+      {/* EMPTY */}
+      {!loading && eventos.length === 0 && ciudadBuscada && (
+        <p>No hay eventos para {ciudadBuscada}</p>
       )}
+
     </div>
   )
 }
