@@ -34,8 +34,6 @@ function AgregarCritica() {
   }, [token])
 
   useEffect(() => {
-    // Carga inicial de datos de la ruta.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLibros()
   }, [fetchLibros])
 

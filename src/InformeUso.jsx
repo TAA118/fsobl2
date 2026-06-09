@@ -39,8 +39,6 @@ function InformeUso() {
   }, [token])
 
   useEffect(() => {
-    // Carga inicial de datos de la ruta.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchInformeUso()
   }, [fetchInformeUso])
 

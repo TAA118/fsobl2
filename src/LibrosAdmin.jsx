@@ -19,7 +19,6 @@ function LibrosAdmin() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [message, setMessage] = useState(null)
-
   const authHeaders = useMemo(() => ({
     Authorization: `Bearer ${token}`
   }), [token])
@@ -80,8 +79,6 @@ function LibrosAdmin() {
 
   useEffect(() => {
     if (userRole === 'admin') {
-      // Carga inicial de datos de la ruta.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchLibros()
       fetchGeneros()
     }

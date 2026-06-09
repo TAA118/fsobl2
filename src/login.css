@@ -1,4 +1,3 @@
-/* Login, Register, and Welcome styles */
 
 .app {
   width: 100%;
@@ -23,7 +22,6 @@
   gap: 24px;
 }
 
-/* Welcome Page */
 .welcome-copy {
   display: grid;
   gap: 18px;
@@ -65,7 +63,6 @@
   justify-content: flex-start;
 }
 
-/* Buttons */
 .welcome-actions button,
 .register-form button,
 .back-button {
@@ -144,7 +141,6 @@
   text-align: left;
 }
 
-/* Alerts */
 .alert {
   padding: 14px 18px;
   border-radius: 14px;

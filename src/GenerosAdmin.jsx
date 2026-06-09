@@ -49,8 +49,6 @@ function GenerosAdmin() {
 
   useEffect(() => {
     if (userRole === 'admin') {
-      // Carga inicial de datos de la ruta.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchGeneros()
     }
   }, [fetchGeneros, userRole])
@@ -185,7 +183,6 @@ function GenerosAdmin() {
     <div className="dashboard-results">
       <div className="register-header">
         <h2>Administración de géneros</h2>
-        <p>Agrega, edita o elimina géneros. Solo los admins tienen acceso a estas acciones.</p>
       </div>
 
       {message && <div className="alert success">{message}</div>}

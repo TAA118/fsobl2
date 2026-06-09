@@ -1,10 +1,10 @@
 :root {
-  --text: #1f2937; /* darker text from the layout */
+  --text: #1f2937; 
   --text-h: #0f172a;
-  --bg: #f4f8fc; /* background matching your layouts */
+  --bg: #f4f8fc; 
   --border: #e5e7eb;
   --code-bg: #f4f3ec;
-  --accent: #0284c7; /* blue primary from layouts */
+  --accent: #0284c7; 
   --accent-bg: rgba(2, 132, 199, 0.08);
   --accent-border: rgba(2, 132, 199, 0.25);
   --social-bg: rgba(244, 243, 236, 0.5);

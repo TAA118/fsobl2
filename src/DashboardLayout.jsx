@@ -59,7 +59,6 @@ function DashboardLayout() {
 
         </div>
 
-        {/* ACA SE RENDERIZA LA VISTA ACTIVA */}
         <div className="dashboard-content">
           <Outlet />
         </div>
