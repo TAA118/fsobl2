@@ -1,17 +1,23 @@
 import { useEffect, useState } from 'react'
 import { API_URL } from './config.js'
 
-function AgregarCritica({ authHeaders, setLoading, setError, setMessage }) {
+function AgregarCritica({ authHeaders }) {
   const [libros, setLibros] = useState([])
+
   const [form, setForm] = useState({
     idLibro: '',
     puntaje: 5,
     comentario: ''
   })
 
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [message, setMessage] = useState(null)
+
   const fetchLibros = async () => {
     try {
       setLoading(true)
+      setError(null)
 
       const res = await fetch(`${API_URL}/v1/libros`, {
         headers: {
@@ -79,6 +85,10 @@ function AgregarCritica({ authHeaders, setLoading, setError, setMessage }) {
         <h2>Agregar crítica</h2>
       </div>
 
+      {loading && <p>Cargando...</p>}
+      {error && <div className="alert error">{error}</div>}
+      {message && <div className="alert success">{message}</div>}
+
       <form onSubmit={handleSubmit} className="register-form">
 
         <label>
@@ -104,7 +114,7 @@ function AgregarCritica({ authHeaders, setLoading, setError, setMessage }) {
           <select
             value={form.puntaje}
             onChange={(e) =>
-              setForm((p) => ({ ...p, puntaje: e.target.value }))
+              setForm((p) => ({ ...p, puntaje: Number(e.target.value) }))
             }
           >
             {[1,2,3,4,5,6,7,8,9,10].map(n => (
