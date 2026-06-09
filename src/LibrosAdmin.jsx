@@ -430,7 +430,7 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
                     />
                   </label>
                   <label>
-                    Género
+                    Género ja
                     <select
                         value={editForm.genero} onChange={(e) => setEditForm((p) => ({ ...p, genero: e.target.value}))}
                         required
