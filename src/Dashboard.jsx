@@ -31,7 +31,7 @@ function Dashboard() {
     : {}
 
   // -------------------------
-  // cargar plan
+  // plan cache
   // -------------------------
   useEffect(() => {
     const cached = localStorage.getItem('plan')
@@ -39,7 +39,7 @@ function Dashboard() {
   }, [dispatch])
 
   // -------------------------
-  // fetch libros (solo si alguna vista lo necesita)
+  // fetch libros
   // -------------------------
   const fetchLibros = async () => {
     try {
@@ -101,9 +101,6 @@ function Dashboard() {
   const isAdmin = userRole === 'admin'
   const isPremium = userPlan === 'premium'
 
-  // -------------------------
-  // UI
-  // -------------------------
   return (
     <section className="dashboard">
       <div className="register-card dashboard-panel">
@@ -114,59 +111,91 @@ function Dashboard() {
           <p>Selecciona una acción</p>
         </div>
 
-        {/* BOTONES */}
+        {/* BOTONES (ESTILADOS CORRECTAMENTE) */}
         <div className="dashboard-actions">
 
-          <button onClick={() => setView('misCriticas')}>
+          <button
+            className="btn btn--primary"
+            onClick={() => setView('misCriticas')}
+            disabled={loading}
+          >
             Mis críticas
           </button>
 
-          <button onClick={() => handleViewChange('agregarCritica')}>
+          <button
+            className="btn btn--secondary"
+            onClick={() => handleViewChange('agregarCritica')}
+            disabled={loading}
+          >
             Agregar crítica
           </button>
 
-          <button onClick={() => handleViewChange('criticasLibro')}>
+          <button
+            className="btn btn--secondary"
+            onClick={() => handleViewChange('criticasLibro')}
+            disabled={loading}
+          >
             Buscar críticas por libro
           </button>
 
-          <button onClick={() => handleViewChange('informeUso')}>
+          <button
+            className="btn btn--secondary"
+            onClick={() => handleViewChange('informeUso')}
+            disabled={loading}
+          >
             Informe de uso
           </button>
 
-          <button onClick={() => setView('eventos')}>
+          <button
+            className="btn btn--secondary"
+            onClick={() => handleViewChange('eventos')}
+            disabled={loading}
+          >
             Eventos
           </button>
 
           {isAdmin && (
-            <button onClick={() => setView('adminLibros')}>
+            <button
+              className="btn btn--secondary"
+              onClick={() => setView('adminLibros')}
+              disabled={loading}
+            >
               Administrar libros
             </button>
           )}
 
           {isAdmin && (
-            <button onClick={() => setView('adminGeneros')}>
+            <button
+              className="btn btn--secondary"
+              onClick={() => setView('adminGeneros')}
+              disabled={loading}
+            >
               Administrar géneros
             </button>
           )}
 
           <button
-            disabled={isPremium}
+            className={`btn btn--primary ${isPremium ? 'btn--disabled' : ''}`}
             onClick={() => setView('cambioPlan')}
+            disabled={loading || isPremium}
           >
-            Cambio de plan
+            {isPremium ? 'Usuario Premium' : 'Cambio de plan'}
           </button>
+
         </div>
 
-        {/* ERRORES / MENSAJES */}
+        {/* ERRORES */}
         {error && <div className="alert error">{error}</div>}
         {message && <div className="alert success">{message}</div>}
 
         {/* VISTAS */}
         {view === 'inicio' && (
-          <p>Elegí una opción del menú</p>
+          <div className="dashboard-results">
+            <h2>Elige una opción</h2>
+            <p>Usa el menú superior para navegar</p>
+          </div>
         )}
 
-        {/* 🔥 YA SEPARADO BIEN */}
         {view === 'misCriticas' && (
           <MisCriticas
             authHeaders={authHeaders}
