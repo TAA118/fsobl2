@@ -1,12 +1,59 @@
-import { useOutletContext } from 'react-router-dom'
+import { useCallback, useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { API_URL } from './config.js'
 
-function InformeUso({ informeUso: informeUsoProp }) {
-  const outletContext = useOutletContext()
-  const informeUso = informeUsoProp || outletContext?.informeUso
+function InformeUso() {
+  const { token } = useSelector((state) => state.auth)
+  const [informeUso, setInformeUso] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const fetchInformeUso = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const res = await fetch(`${API_URL}/v1/criticas/informe/uso`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      const contentType = res.headers.get('content-type') || ''
+      const data = contentType.includes('application/json')
+        ? await res.json()
+        : null
+
+      if (!res.ok) {
+        throw new Error(data?.message || 'Error al obtener el informe de uso')
+      }
+
+      setInformeUso(data)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [token])
+
+  useEffect(() => {
+    // Carga inicial de datos de la ruta.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchInformeUso()
+  }, [fetchInformeUso])
+
+  if (loading) {
+    return <p>Cargando informe...</p>
+  }
+
+  if (error) {
+    return <div className="alert error">{error}</div>
+  }
 
   if (!informeUso) {
-    return null
+    return <p>No hay datos de uso para mostrar.</p>
   }
 
   const totalCriticas = informeUso.premium + informeUso.plus
@@ -31,7 +78,11 @@ function InformeUso({ informeUso: informeUsoProp }) {
   }
 
   return (
-    <div>
+    <div className="dashboard-results">
+      <div className="register-header">
+        <h2>Informe de uso</h2>
+      </div>
+
       <div style={{ width: '100%', height: 400 }}>
         <ResponsiveContainer>
           <PieChart>
