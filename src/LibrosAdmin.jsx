@@ -4,7 +4,7 @@ import { API_URL } from './config'
 
 function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }) {
   const [libros, setLibros] = useState([])
-  const [createForm, setCreateForm] = useState({titulo: '', autor: '', genero: '', fecha: '', sinopsis: '', imagenFile: null})
+  const [createForm, setCreateForm] = useState({titulo: '', autor: '', genero: '', fecha: '', sinopsis: ''})
   const [filterGenero, setFilterGenero] = useState('')
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({ titulo: '', autor: '', genero: '', fecha: '', sinopsis: '', imagenURL: '', imagenFile: null })
@@ -112,9 +112,6 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
       formData.append('genero', createForm.genero)
       if (createForm.fecha) formData.append('fecha', new Date(createForm.fecha).toISOString())
       formData.append('sinopsis', createForm.sinopsis)
-      if (createForm.imagenFile) {
-        formData.append('imagen', createForm.imagenFile)
-      }
 
       const response = await fetch(`${API_URL}/v1/libros`, {
         method: 'POST',
@@ -355,20 +352,6 @@ function LibrosAdmin({ authHeaders, setLoading, setError, setMessage, userRole }
           }))
         }
         placeholder="Déjalo vacío para generar una sinopsis automáticamente"
-      />
-    </label>
-
-    <label>
-      Portada
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) =>
-          setCreateForm((prev) => ({
-            ...prev,
-            imagenFile: e.target.files[0] || null
-          }))
-        }
       />
     </label>
 
