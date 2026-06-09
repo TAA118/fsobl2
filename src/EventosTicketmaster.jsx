@@ -13,15 +13,17 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
 
   const { token } = useSelector((state) => state.auth)
 
-  // -------------------------
-  // helper anti error #130
-  // -------------------------
-  const safeText = (v) =>
-    typeof v === 'object' ? v?.text || v?.value || '' : v || ''
+  // 🔥 FIX clave: evitar objetos raros de Ticketmaster
+  const safeText = (v) => {
+    if (!v) return ''
+    if (typeof v === 'string') return v
+    if (typeof v === 'number') return String(v)
+    if (typeof v === 'object') {
+      return v.value || v.name || v.text || JSON.stringify(v)
+    }
+    return ''
+  }
 
-  // -------------------------
-  // buscar eventos
-  // -------------------------
   const handleBuscarEventos = async (e) => {
     e.preventDefault()
 
@@ -80,9 +82,6 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
     }
   }
 
-  // -------------------------
-  // paginación
-  // -------------------------
   const handlePaginacion = async (page) => {
     if (!token) return
 
@@ -117,7 +116,6 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
 
       setEventos(eventosNormalizados)
       setCurrentPage(page)
-
       window.scrollTo(0, 0)
     } catch (err) {
       setError(err.message)
@@ -138,7 +136,6 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
         <p>Busca eventos por ciudad</p>
       </div>
 
-      {/* FORM */}
       <form className="register-form" onSubmit={handleBuscarEventos}>
         <label>
           Ciudad
@@ -159,19 +156,13 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
         </button>
       </form>
 
-      {/* INFO */}
       {eventos.length > 0 && (
         <>
           <div className="eventos-info">
-            <p>
-              <strong>Ciudad:</strong> {ciudadBuscada}
-            </p>
-            <p>
-              <strong>Página:</strong> {currentPage} / {totalPages}
-            </p>
+            <p><strong>Ciudad:</strong> {ciudadBuscada}</p>
+            <p><strong>Página:</strong> {currentPage} / {totalPages}</p>
           </div>
 
-          {/* LISTA */}
           <ul className="dashboard-list">
             {eventos.map((evento) => (
               <li key={evento.id} className="dashboard-item">
@@ -192,9 +183,7 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
 
                 <strong>{evento.nombre}</strong>
 
-                <p>
-                  <strong>Lugar:</strong> {evento.venue}
-                </p>
+                <p><strong>Lugar:</strong> {evento.venue}</p>
 
                 <p>
                   <strong>Fecha:</strong>{' '}
@@ -217,7 +206,6 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
             ))}
           </ul>
 
-          {/* PAGINACION */}
           {totalPages > 1 && (
             <ReactPaginate
               previousLabel="←"
@@ -232,7 +220,6 @@ function EventosTicketmaster({ loading, setLoading, setError, setMessage }) {
         </>
       )}
 
-      {/* EMPTY */}
       {!eventosLoading && eventos.length === 0 && ciudadBuscada && (
         <p>No se encontraron eventos para {ciudadBuscada}</p>
       )}
