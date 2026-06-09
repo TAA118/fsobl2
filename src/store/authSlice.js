@@ -11,11 +11,9 @@ const getRoleFromToken = (token) => {
     return null
   }
 }
-
 const initialToken = localStorage.getItem('token') || null
 const initialPlan = localStorage.getItem('plan') || null
 const initialRole = getRoleFromToken(initialToken)
-
 const authSlice = createSlice({
   name: 'auth',
   initialState: {

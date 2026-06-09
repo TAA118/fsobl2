@@ -5,13 +5,7 @@ import { API_URL } from './config.js'
 function AgregarCritica() {
   const [libros, setLibros] = useState([])
   const { token } = useSelector((state) => state.auth)
-
-  const [form, setForm] = useState({
-    idLibro: '',
-    puntaje: 5,
-    comentario: ''
-  })
-
+  const [form, setForm] = useState({idLibro: '',puntaje: 5,comentario: ''})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [message, setMessage] = useState(null)
